@@ -1,0 +1,6 @@
+albumdirectory: false
+always_eject: false
+artistdirectory: false
+autodetect: false
+outputFolder: /home/stefan/Musik/TestFolder
+standardFormat: ogg
