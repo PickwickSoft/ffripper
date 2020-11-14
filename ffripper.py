@@ -9,7 +9,7 @@ from errors import RipperError
 from metadata import Metadata
 from cdrom_info_object import CDInfo
 from track_info import TrackInfo
-# from player import Player
+from player import Player
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib
@@ -37,6 +37,7 @@ formats.sort()
 entry = 0
 local_mount_point = "/run/user/1000/gvfs/cdda:host=sr0"
 music_detect = True
+is_running = False
 directory_name, filename = os.path.split(os.path.abspath(__file__))
 os.chdir(directory_name)
 
@@ -57,10 +58,6 @@ class Loader:
         always_eject = settings['always_eject']
         output_folder = settings['outputFolder']
         format_standard = settings['standardFormat']
-        if always_eject:
-            eject.set_active(True)
-        elif not always_eject:
-            eject.set_active(False)
         if output_folder != '':
             output.set_text(output_folder)
         if format_standard is not None:
@@ -74,7 +71,6 @@ class Preparer:
     def __init__(self, ):
         self.input_dev = local_mount_point
         self.format = format_chooser.get_active_text()
-        self.eject = eject.get_active()
         self.output_folder = output.get_text()
 
     def return_all(self):
@@ -102,104 +98,78 @@ class UiObjects:
         return folder
 
 
-class MetadataEditor(Gtk.Window):
+class MetadataTreeview:
 
-    def __init__(self, metadata):
-        self.metadata = metadata
+    def __init__(self):
+        try:
+            self.metadata = Metadata()
+        except RipperError as error:
+            Dialog(error.reason, error.text).error_dialog()
+            self.metadata = None
         self.t = Thread(target=self.execute_copy, args=())
         self.cp = None
         self.copy_metadata = None
         self.tracks_2_copy = []
-        # Window
-        Gtk.Window.__init__(self, title="FFRipper")
 
         # Scrolled Window
-        scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled.set_min_content_height(350)
+        scrolled.set_min_content_height(200)
 
-        # Main Box
-        self.box = Gtk.Box.new(1, 0)
-        self.add(self.box)
+        # Tracks default
+        tracks = None
+        try:
+            self.disc_tracks = os.listdir(local_mount_point)
+        except FileNotFoundError:
+            Dialog("No Disc Found", "Please insert a disc and reload Metadata").error_dialog()
+            return
 
-        # Artist Box
-        box_double = Gtk.Box.new(0, 0)
-        label = Gtk.Label()
-        label.set_text("Artist: ")
-        box_double.pack_start(label, True, True, 5)
-
-        self.artist_entry = Gtk.Entry()
-        self.artist_entry.set_text(self.metadata.get_artist())
-        box_double.pack_start(self.artist_entry, True, True, 5)
-
-        self.box.pack_start(box_double, True, True, 5)
-
-        # Album Box
-        box_double = Gtk.Box.new(0, 0)
-        label = Gtk.Label()
-        label.set_text("Album: ")
-        box_double.pack_start(label, True, True, 5)
-
-        self.album_entry = Gtk.Entry()
-        self.album_entry.set_text(self.metadata.get_album())
-        box_double.pack_start(self.album_entry, True, True, 5)
-
-        self.box.pack_start(box_double, True, True, 5)
+        # Write to Entries
+        if self.metadata is not None:
+            artist_entry.set_text(self.metadata.get_artist())
+            album_entry.set_text(self.metadata.get_album())
 
         # Metadata append
-        tracks = self.metadata.get_tracks()
+            tracks = self.metadata.get_tracks()
         self.list_store = Gtk.ListStore(bool, str, str, str)
         try:
             for i in range(len(tracks)):
                 self.list_store.append([False, str(i + 1), tracks[i].get_name(), self.metadata.get_artist()])
         except TypeError:
-            disc_tracks = os.listdir(local_mount_point)
-            for j in range(len(disc_tracks)):
-                self.list_store.append([False, str(j + 1), disc_tracks[j], ""])
+            for j in range(len(self.disc_tracks)):
+                self.list_store.append([False, str(j + 1), self.disc_tracks[j], ""])
 
-        self.tree_view = Gtk.TreeView(model=self.list_store)
+        tree_view.set_model(self.list_store)
 
         # Toggle Buttons
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", self.on_cell_toggled)
         column_toggle = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
-        self.tree_view.append_column(column_toggle)
+        tree_view.append_column(column_toggle)
 
         # Track Numbers
         renderer_track_number = Gtk.CellRendererText()
         column_track_number = Gtk.TreeViewColumn("Nr.", renderer_track_number, text=1)
-        self.tree_view.append_column(column_track_number)
+        tree_view.append_column(column_track_number)
         renderer_track_number.connect("edited", self.text_edited)
 
         # Audio Titles
         renderer_title = Gtk.CellRendererText()
         renderer_title.set_property("editable", True)
         column_title = Gtk.TreeViewColumn("Title", renderer_title, text=2)
-        self.tree_view.append_column(column_title)
+        tree_view.append_column(column_title)
         renderer_title.connect("edited", self.text_edited2)
 
         # Audio Artists
         renderer_artist = Gtk.CellRendererText()
         renderer_artist.set_property("editable", True)
         column_artist = Gtk.TreeViewColumn("Artist", renderer_artist, text=3)
-        self.tree_view.append_column(column_artist)
+        tree_view.append_column(column_artist)
         renderer_artist.connect("edited", self.text_edited3)
-
-        # Insert into Box
-        scrolled.add(self.tree_view)
-        self.box.pack_start(scrolled, True, True, 5)
 
         # The Audio Player Box
         box_double = Gtk.Box.new(0, 0)
         start_pause_button = Gtk.Button
 
-        # Action Buttons
-        box_double = Gtk.Box.new(0, 0)
-        button = Gtk.Button.new_with_label("Copy")
-        button.connect("clicked", self.on_copy_clicked)
-        box_double.pack_start(button, True, True, 5)
-
-        self.box.pack_start(box_double, True, True, 5)
 
     def text_edited(self, widget, path, text):
         self.list_store[path][1] = text
@@ -213,10 +183,11 @@ class MetadataEditor(Gtk.Window):
     def text_edited3(self, widget, path, text):
         self.list_store[path][3] = text
 
-    def return_info(self, tracks):
-        return CDInfo(self.album_entry.get_text(), self.artist_entry.get_text(), tracks)
+    @staticmethod
+    def return_info(tracks):
+        return CDInfo(album_entry.get_text(), artist_entry.get_text(), tracks)
 
-    def on_copy_clicked(self, button):
+    def on_copy_clicked(self):
         title_numbers = os.listdir(local_mount_point)
         tracks = []
         for i in range(len(self.list_store)):
@@ -227,6 +198,7 @@ class MetadataEditor(Gtk.Window):
         self.rip()
 
     def execute_copy(self):
+        global is_running
         print("CopyStart")
         info = Preparer().return_all()
         print(info)
@@ -238,9 +210,11 @@ class MetadataEditor(Gtk.Window):
             print("An Error has occurred: ", error.reason.to_string())
             GLib.idle_add(Dialog(error.reason.to_string(), error.text).error_dialog)
         self.t = Thread(target=self.execute_copy, args=())
-        if eject.get_active() == 1:
+        if eject_standard.get_active() == 1:
             os.system("eject")
         GLib.idle_add(self.update_ui, "Copy", 0, "")
+        is_running = False
+
 
     @staticmethod
     def update_ui(copy_button_title, fraction, filename_label_text):
@@ -251,7 +225,6 @@ class MetadataEditor(Gtk.Window):
         filename_label.set_text(filename_label_text)
 
     def rip(self):
-        self.destroy()
         if os.path.isdir(local_mount_point):
             if format_chooser.get_active_text() != "":
                 path = output.get_text()
@@ -328,29 +301,26 @@ class MyCopyListener(CopyProcessorListener):
 class Handler:
 
     def __init__(self):
-        self.is_running = False
-        self.metadata_editor = None
+        global metadata_view
+        self.player = Player()
+        self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[0])
 
     @staticmethod
     def ok_button_clicked(button):
         directory_error.hide()
 
-    def on_copy_button_clicked(self, button):
+    @staticmethod
+    def on_copy_button_clicked(button):
+        global is_running
         if os.path.isdir(local_mount_point):
             if format_chooser.get_active_text() != "":
                 if os.path.isdir(output.get_text()):
-                    if not self.is_running:
-                        metadata = None
-                        try:
-                            metadata = Metadata()
-                        except RipperError:
-                            print("ErrorFound")
-                        self.metadata_editor = MetadataEditor(metadata)
-                        self.metadata_editor.show_all()
-                        self.is_running = True
+                    if not is_running:
+                        is_running = True
+                        metadata_view.on_copy_clicked()
                     else:
-                        self.metadata_editor.kill_process()
-                        self.is_running = False
+                        metadata_view.kill_process()
+                        is_running = False
 
                 else:
                     directory_error.format_secondary_text(output.get_text() + "\n")
@@ -372,6 +342,25 @@ class Handler:
         if folder is not None:
             output.set_text(folder)
 
+    def player_button_clicked(self, button):
+        if player_button.get_image() == play_image:
+            player_button.set_image(pause_image)
+            self.player.play()
+        else:
+            player_button.set_image(play_image)
+            self.player.pause()
+
+    @staticmethod
+    def volume_value_changed(value):
+        print(value)
+
+    def tree_view_columns_changed(self, widget, row, column):
+        print("Changed row: ", row)
+        self.player.reset()
+        self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[int(row)])
+        player_button.set_image(pause_image)
+        self.player.play()
+
     @staticmethod
     def setting_button_clicked(button):
         settings_window.show_all()
@@ -391,6 +380,14 @@ class Handler:
     @staticmethod
     def cancel_button_clicked(button):
         settings_window.hide()
+
+    @staticmethod
+    def refresh_button_clicked(button):
+        pass
+
+    @staticmethod
+    def eject_button_clicked(button):
+        os.system("eject")
 
     @staticmethod
     def apply_button_clicked(button):
@@ -424,13 +421,9 @@ class Handler:
 
 builder = Gtk.Builder()
 builder.add_from_file("cd.glade")
-builder.connect_signals(Handler())
 
-window = builder.get_object("main_window")
-window.connect("destroy", Gtk.main_quit)
 
 output = builder.get_object("output_entry")
-eject = builder.get_object("eject_button")
 filename_label = builder.get_object("label1")
 progressbar = builder.get_object("progressbar")
 format_chooser = builder.get_object("format_chooser")
@@ -444,7 +437,22 @@ directory_error = builder.get_object("dir_win")
 directory_create = builder.get_object("directory_create")
 album_create = builder.get_object("album_create")
 metadata_win = builder.get_object("metadata_window")
+tree_view = builder.get_object("tree_view")
+scrolled = builder.get_object("scrolled")
+artist_entry = builder.get_object("artist_entry")
+album_entry = builder.get_object("album_entry")
+player_button = builder.get_object("player_button")
+volume = builder.get_object("volume")
+slider = builder.get_object("slider")
+play_image = builder.get_object("play_image")
+pause_image = builder.get_object("pause_image")
 
+metadata_view = MetadataTreeview()
+
+builder.connect_signals(Handler())
+
+window = builder.get_object("main_window")
+window.connect("destroy", Gtk.main_quit)
 load = Loader()
 load.load_formats(formats)
 load.load_settings()

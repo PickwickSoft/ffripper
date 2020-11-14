@@ -62,6 +62,7 @@ class Player:
         return position
 
 
+"""
 player = Player()
 player.set_file("/home/stefan/Musik/TestFolder/Mica țiganiadă.ogg")
 player.play()
@@ -72,3 +73,4 @@ player.pause()
 input("::")
 player.play()
 input("::")
+"""
