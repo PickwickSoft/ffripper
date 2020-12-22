@@ -1,12 +1,19 @@
+import ffripper
 from setuptools import setup
 
+data_files = []
+
 setup(
-    name='FFRipper',
-    version='1.0',
-    packages=[''],
-    url='https://github.com/ThePickwickClub/ffripper',
-    license='GPLv3',
-    author='Stefan Garlonta',
-    author_email='stefan.garlonta@gmail.com',
-    description='A fast audio-cd ripper'
+    name = ffripper.__name__,
+    packages = [ffripper.__name__],
+    scripts = ['bin/ffripper'],
+    data_files = data_files,
+    version = ffripper.__version__,
+    description = ffripper.__description__,
+    author = ffripper.__author__,
+    author_email = ffripper.__author_email__,
+    license = ffripper.__license__,
+    platforms = ffripper.__platforms__,
+    url = ffripper.__url__,
+    download_url = ffripper.__download_url__,
 )
