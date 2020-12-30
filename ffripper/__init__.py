@@ -21,7 +21,7 @@
 __major__ = 1
 __minor__ = 0
 __release__ = 0
-__prerelease__ = "" # alpha, beta, rc etc.
+__prerelease__ = ""  # alpha, beta, rc etc.
 
 # package information
 __name__ = "ffripper"
