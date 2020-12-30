@@ -1,4 +1,22 @@
-#! /usr/bin/env python3
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+#
+# ffripper-1.0 - Audio-CD ripper.
+# Copyright 2020 Stefan Garlonta
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA
 
 import os
 import gi
@@ -10,12 +28,11 @@ from metadata import Metadata
 from cdrom_info_object import CDInfo
 from track_info import TrackInfo
 from player import Player
+from ui_elements import UiObjects, Dialog
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, Gst
 
-gi.require_version('Notify', '0.7')
-from gi.repository import Notify
 
 formats = ["mp2", "mp3",
            "wav", "ogg",
@@ -78,26 +95,6 @@ class Preparer:
         return prepared_list
 
 
-class UiObjects:
-
-    @staticmethod
-    def chooser():
-        dialog = Gtk.FileChooserDialog(
-            title="Please choose a folder",
-            action=Gtk.FileChooserAction.SELECT_FOLDER
-        )
-        dialog.add_buttons(
-            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK
-        )
-        dialog.set_default_size(800, 400)
-        folder = None
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            folder = dialog.get_filename()
-        dialog.destroy()
-        return folder
-
-
 class MetadataTreeview:
 
     def __init__(self):
@@ -128,7 +125,7 @@ class MetadataTreeview:
             artist_entry.set_text(self.metadata.get_artist())
             album_entry.set_text(self.metadata.get_album())
 
-        # Metadata append
+            # Metadata append
             tracks = self.metadata.get_tracks()
         self.list_store = Gtk.ListStore(bool, str, str, str)
         try:
@@ -165,11 +162,6 @@ class MetadataTreeview:
         column_artist = Gtk.TreeViewColumn("Artist", renderer_artist, text=3)
         tree_view.append_column(column_artist)
         renderer_artist.connect("edited", self.text_edited3)
-
-        # The Audio Player Box
-        box_double = Gtk.Box.new(0, 0)
-        start_pause_button = Gtk.Button
-
 
     def text_edited(self, widget, path, text):
         self.list_store[path][1] = text
@@ -215,7 +207,6 @@ class MetadataTreeview:
         GLib.idle_add(self.update_ui, "Copy", 0, "")
         is_running = False
 
-
     @staticmethod
     def update_ui(copy_button_title, fraction, filename_label_text):
         # Dialog.finished_dialog()
@@ -248,45 +239,6 @@ class MetadataTreeview:
         self.t = Thread(target=self.execute_copy, args=())
 
 
-class Dialog:
-
-    def __init__(self, heading, text):
-        self.heading = heading
-        self.text = text
-
-    def error_dialog(self):
-        dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.ERROR,
-                                   buttons=Gtk.ButtonsType.OK,
-                                   text=self.heading,
-                                   )
-        dialog.format_secondary_text(
-            self.text)
-        dialog.run()
-        dialog.destroy()
-
-    @staticmethod
-    def finished_dialog():
-        dialog = Gtk.MessageDialog(
-            message_type=Gtk.MessageType.INFO,
-            buttons=Gtk.ButtonsType.OK,
-            text="Finished Ripping",
-        )
-        dialog.format_secondary_text(
-            "Process finished in: ..."
-        )
-        dialog.run()
-        dialog.destroy()
-
-    @staticmethod
-    def notify():
-        Notify.init("FFRipper")
-        notification = Notify.Notification.new(
-            "Finished Ripping",
-            "Process finished in: ..."
-        )
-        notification.show()
-
-
 class MyCopyListener(CopyProcessorListener):
     @staticmethod
     def on_copy_item(count):
@@ -302,8 +254,9 @@ class Handler:
 
     def __init__(self):
         global metadata_view
-        self.player = Player()
+        self.player = Player(self.refresh_button)
         self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[0])
+        self.slider_handler_id = slider.connect("value-changed", self.on_slider_seek)
 
     @staticmethod
     def ok_button_clicked(button):
@@ -346,18 +299,39 @@ class Handler:
         if player_button.get_image() == play_image:
             player_button.set_image(pause_image)
             self.player.play()
+            GLib.timeout_add(1000, self.update_slider)
         else:
             player_button.set_image(play_image)
             self.player.pause()
 
+    def update_slider(self):
+        if not self.player.is_playing:
+            return False
+        else:
+            slider.set_range(0, self.player.get_duration() / Gst.SECOND)
+            slider.handler_block(self.slider_handler_id)
+            slider.set_value(float(self.player.get_position()) / Gst.SECOND)
+            slider.handler_unblock(self.slider_handler_id)
+
+            return True
+
+    def on_slider_seek(self, argument):
+        seek_time_secs = slider.get_value()
+        self.player._player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
+                                        seek_time_secs * Gst.SECOND)
+
+    def volume_changed(self, button, volume):
+        self.player.set_volume(volume)
+
     @staticmethod
-    def volume_value_changed(value):
-        print(value)
+    def refresh_button(player):
+        player_button.set_image(play_image)
 
     def tree_view_columns_changed(self, widget, row, column):
         print("Changed row: ", row)
         self.player.reset()
-        self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[int(row)])
+        index = int(row.get_indices()[0])
+        self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[index])
         player_button.set_image(pause_image)
         self.player.play()
 
@@ -421,7 +395,6 @@ class Handler:
 
 builder = Gtk.Builder()
 builder.add_from_file("cd.glade")
-
 
 output = builder.get_object("output_entry")
 filename_label = builder.get_object("label1")

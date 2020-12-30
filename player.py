@@ -5,48 +5,59 @@ import gi
 
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
+
 Gst.init(None)
 
 
 class Player:
 
-    def __init__(self):
+    def __init__(self, handler):
+        self.handler = handler
         self.filepath = ""
-        self.player = Gst.ElementFactory.make("playbin", "player")
+        self._player = Gst.ElementFactory.make("playbin", "player")
         fakesink = Gst.ElementFactory.make("fakesink", "fakesink")
-        self.player.set_property("video-sink", fakesink)
-        bus = self.player.get_bus()
+        self._player.set_property("video-sink", fakesink)
+        bus = self._player.get_bus()
         bus.add_signal_watch()
         bus.connect("message", self.on_message)
+        self._player.connect("about-to-finish", self.handler)
+        self.is_playing = False
+        self.duration = 0
 
     def set_file(self, filepath: str):
         self.filepath = filepath
-        self.player.set_property("uri", "file://" + self.filepath)
+        self._player.set_property("uri", "file://" + self.filepath)
+
+    def set_volume(self, volume):
+        self._player.set_property('volume', volume)
 
     def play(self):
         if os.path.isfile(self.filepath):
-            self.player.set_state(Gst.State.PLAYING)
+            self._player.set_state(Gst.State.PLAYING)
+            self.is_playing = True
         else:
-            self.player.set_state(Gst.State.NULL)
+            self._player.set_state(Gst.State.NULL)
             print("Can not find file on audio-CD")
 
     def pause(self):
-        self.player.set_state(Gst.State.PAUSED)
+        self._player.set_state(Gst.State.PAUSED)
+        self.is_playing = False
 
     def reset(self):
-        self.player.set_state(Gst.State.NULL)
+        self._player.set_state(Gst.State.NULL)
+        self.is_playing = False
 
     def on_message(self, bus, message):
         t = message.type
         if t == Gst.MessageType.EOS:
-            self.player.set_state(Gst.State.NULL)
+            self._player.set_state(Gst.State.NULL)
         elif t == Gst.MessageType.ERROR:
-            self.player.set_state(Gst.State.NULL)
+            self._player.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
             print("Error: %s" % err, debug)
 
     def get_duration(self):
-        success, duration = self.player.query_duration(Gst.Format.TIME)
+        success, duration = self._player.query_duration(Gst.Format.TIME)
         if success:
             duration = duration / Gst.SECOND
         else:
@@ -54,7 +65,7 @@ class Player:
         return duration
 
     def get_position(self):
-        success, position = self.player.query_position(Gst.Format.TIME)
+        success, position = self._player.query_position(Gst.Format.TIME)
         if not success:
             raise Exception("Couldn't fetch current song position to update slider")
         else:
@@ -62,15 +73,16 @@ class Player:
         return position
 
 
-"""
-player = Player()
-player.set_file("/home/stefan/Musik/TestFolder/Mica țiganiadă.ogg")
-player.play()
-input(":: ")
-print(player.get_duration())
-print(player.get_position())
-player.pause()
-input("::")
-player.play()
-input("::")
-"""
+if __name__ == "__main__":
+    def handl():
+        print("sbviksbvijfbv")
+    player = Player(handl)
+    player.set_file("/home/stefan/Musik/TestFolder/Mica țiganiadă.ogg")
+    player.play()
+    input(":: ")
+    print(player.get_duration())
+    print(player.get_position())
+    player.pause()
+    input("::")
+    player.play()
+    input("::")

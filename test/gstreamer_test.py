@@ -1,5 +1,3 @@
-import gi
-
 from gi.repository import Gst, Gtk, GLib
 
 
@@ -22,7 +20,8 @@ class SeekingExample(Gtk.Window):
 
         # setting up the playbin elements
         self.playbin = Gst.ElementFactory.make("playbin", "playbin")
-        self.playbin.set_property("uri", "file:///home/stefan/Musik/TestFolder/Mica țiganiadă.ogg")
+        # self.playbin.set_property("uri", "file:///home/stefan/Musik/TestFolder/Mica țiganiadă.ogg")
+        self.playbin.set_property("uri", "/run/user/1000/gvfs/cdda:host=sr0/Track 1.wav")
 
         # setting up a simple Horizontal box layout, with a window size of 500
         self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -86,11 +85,12 @@ class SeekingExample(Gtk.Window):
                 raise GenericException("Couldn't fetch current song position to update slider")
 
             # block seek handler so we don't seek when we set_value()
-            self.slider.handler_block(self.slider_handler_id)
+        self.slider.handler_block(self.slider_handler_id)
 
-            self.slider.set_value(float(position) / Gst.SECOND)
+        self.slider.set_value(float(position) / Gst.SECOND)
 
-            self.slider.handler_unblock(self.slider_handler_id)
+        self.slider.handler_unblock(self.slider_handler_id)
+
 
         return True  # continue calling every x milliseconds
 
