@@ -5,14 +5,13 @@
   <object class="GtkAboutDialog" id="aboutdialog">
     <property name="can_focus">False</property>
     <property name="destroy_with_parent">True</property>
-    <property name="icon">Icons/icons8-burn-cd-52.png</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">FFRipper</property>
     <property name="copyright" translatable="yes">© 2020 Stefan Garlonta &lt;stefan.garlonta@gmail.com&gt;</property>
     <property name="comments" translatable="yes">Fast and simple to use audio-cd ripper</property>
     <property name="website">github.com/ThePickwickClub/ffripper/</property>
     <property name="authors">Stefan Garlonta</property>
-    <property name="logo">Icons/icons8-burn-cd-52.png</property>
+    <property name="logo">icons8-burn-cd-52.png</property>
     <property name="license_type">gpl-3-0</property>
     <child type="titlebar">
       <placeholder/>
@@ -53,12 +52,12 @@
   <object class="GtkImage" id="pause_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">Icons/icons8-pause-24.png</property>
+    <property name="pixbuf">icons8-pause-24.png</property>
   </object>
   <object class="GtkImage" id="play_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">Icons/icons8-play-24.png</property>
+    <property name="pixbuf">icons8-play-24.png</property>
   </object>
   <object class="GtkPopover" id="popover1">
     <property name="can_focus">False</property>
@@ -141,14 +140,14 @@
   <object class="GtkImage" id="settings_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">Icons/icons8-settings-24.png</property>
+    <property name="pixbuf">icons8-settings-24.png</property>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">FFRipper</property>
     <property name="window_position">center</property>
     <property name="default_width">500</property>
-    <property name="icon">Icons/icons8-burn-cd-52.png</property>
+    <property name="icon">icons8-burn-cd-52.png</property>
     <child type="titlebar">
       <placeholder/>
     </child>
@@ -764,7 +763,7 @@ audio-volume-medium-symbolic</property>
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
-    <property name="icon">Icons/icons8-settings-48.png</property>
+    <property name="icon">icons8-settings-48.png</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
     <child type="titlebar">

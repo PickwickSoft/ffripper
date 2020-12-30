@@ -394,7 +394,7 @@ class Handler:
 
 
 builder = Gtk.Builder()
-builder.add_from_file("cd.glade")
+builder.add_from_file("data/cd.glade")
 
 output = builder.get_object("output_entry")
 filename_label = builder.get_object("label1")
