@@ -1,6 +1,7 @@
 import abc
 import subprocess
 import time
+import shlex
 from errors import Reason, RipperError
 
 
@@ -21,14 +22,14 @@ class CopyProcessor:
         self.format = file_format
         self.audio_files = audio_files
         self.audio_files = self.file_filter(self.audio_files)
-        self.shouldContinue = True
+        self.should_continue = True
         self.listener = listener
         self.meta = metadata
         self.track_info = self.meta.get_tracks()
         self.processes = []
 
     def stop_copy(self):
-        self.shouldContinue = False
+        self.should_continue = False
         for i in range(0, len(self.processes)):
             print("Terminating Process %d" % i)
             self.processes[i].kill()
@@ -46,7 +47,7 @@ class CopyProcessor:
         files = len(self.audio_files)
         start_time = []
         for i in range(len(self.audio_files)):
-            if not self.shouldContinue:
+            if not self.should_continue:
                 return
             track_info = self.track_info[i]
             current_audio_file = track_info.get_name()
@@ -55,10 +56,12 @@ class CopyProcessor:
             self.listener.on_filename(track_info.get_name())
             start_time.append(time.time())
             print(time.time(), ": starting subprocess ", i)
+            rip_command = "ffmpeg -y -i \"{}/{}\" -metadata title=\"{}\" -metadata artist=\"{}\" -metadata album=\"{}" \
+                          "\" \"{}/{}\"".format(self.input_location, self.audio_files[i], track_info.get_name(),
+                                                self.meta.get_artist(), self.meta.get_album(), self.output_location,
+                                                current_audio_file)
             try:
-                ffmpeg = subprocess.Popen(['ffmpeg -y -i \"%s/%s\" -metadata title=\"%s\" -metadata artist=\"%s\" -metadata album=\"%s\" \"%s/%s\" -hide_banner' % (
-                        str(self.input_location), str(self.audio_files[i]), track_info.get_name(), self.meta.get_artist(),
-                        self.meta.get_album(), str(self.output_location), current_audio_file)], shell=True)
+                ffmpeg = subprocess.Popen(shlex.split(rip_command), stderr=subprocess.STDOUT, shell=True)
             except:
                 raise RipperError(Reason.FFMPEGERROR, "An Error occurred while running FFMPEG")
             self.processes.append(ffmpeg)
