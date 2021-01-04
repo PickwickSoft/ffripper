@@ -31,7 +31,7 @@ class Player:
         self._player.set_property("video-sink", fakesink)
         bus = self._player.get_bus()
         bus.add_signal_watch()
-        bus.connect("message", self.on_message)
+        bus.connect("message", self.__on_message)
         self._player.connect("about-to-finish", self.handler)
         self.is_playing = False
         self.duration = 0
