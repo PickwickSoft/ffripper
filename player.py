@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
+"""
+A simple player for ffripper project
 
+Classes:
+    Player
+"""
 import os
 import gi
 
@@ -10,8 +15,15 @@ Gst.init(None)
 
 
 class Player:
+    """
+    The Player for FFRipper.
+    """
 
     def __init__(self, handler):
+        """
+        Constructs the player object.
+        :param handler: method or function
+        """
         self.handler = handler
         self.filepath = ""
         self._player = Gst.ElementFactory.make("playbin", "player")
@@ -25,13 +37,25 @@ class Player:
         self.duration = 0
 
     def set_file(self, filepath: str):
+        """
+        Set file to be played
+        :param filepath: str (path to audio file)
+        """
         self.filepath = filepath
         self._player.set_property("uri", "file://" + self.filepath)
 
     def set_volume(self, volume):
+        """
+
+        :param volume: float between 0.0, representing mute and 1.0 representing maximal volume
+        """
         self._player.set_property('volume', volume)
 
     def play(self):
+        """
+        Starts playing. Before running this you need to call *set_file()*.
+        Make sure you have set a file.
+        """
         if os.path.isfile(self.filepath):
             self._player.set_state(Gst.State.PLAYING)
             self.is_playing = True
@@ -40,14 +64,22 @@ class Player:
             print("Can not find file on audio-CD")
 
     def pause(self):
+        """
+        Pauses the player. Play on calling the *play()* method
+        """
         self._player.set_state(Gst.State.PAUSED)
         self.is_playing = False
 
     def reset(self):
+        """
+        Stops current stream and resets the player. *Attention, you need to call set_file()
+        to play again*
+        """
         self._player.set_state(Gst.State.NULL)
         self.is_playing = False
 
-    def on_message(self, bus, message):
+
+    def __on_message(self, bus, message):
         t = message.type
         if t == Gst.MessageType.EOS:
             self._player.set_state(Gst.State.NULL)
@@ -57,6 +89,10 @@ class Player:
             print("Error: %s" % err, debug)
 
     def get_duration(self):
+        """
+        Returns the length of set track
+        :return: int
+        """
         success, duration = self._player.query_duration(Gst.Format.TIME)
         if success:
             duration = duration / Gst.SECOND
@@ -65,6 +101,10 @@ class Player:
         return duration
 
     def get_position(self):
+        """
+        Returns the current position
+        :return: int
+        """
         success, position = self._player.query_position(Gst.Format.TIME)
         if not success:
             raise Exception("Couldn't fetch current song position to update slider")
@@ -74,9 +114,10 @@ class Player:
 
 
 if __name__ == "__main__":
-    def handl():
-        print("sbviksbvijfbv")
-    player = Player(handl)
+    def handle():
+        """Simple test handler function ;)"""
+        print("Handler called!")
+    player = Player(handle)
     player.set_file("/home/stefan/Musik/TestFolder/Mica țiganiadă.ogg")
     player.play()
     input(":: ")
