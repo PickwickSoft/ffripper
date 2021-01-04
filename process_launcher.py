@@ -60,10 +60,8 @@ class CopyProcessor:
                           "\" \"{}/{}\"".format(self.input_location, self.audio_files[i], track_info.get_name(),
                                                 self.meta.get_artist(), self.meta.get_album(), self.output_location,
                                                 current_audio_file)
-            shlex.split(rip_command)
-            print(rip_command)
             try:
-                ffmpeg = subprocess.Popen(rip_command, stderr=subprocess.STDOUT, shell=True)
+                ffmpeg = subprocess.Popen(shlex.split(rip_command), stderr=subprocess.STDOUT, shell=True)
             except:
                 raise RipperError(Reason.FFMPEGERROR, "An Error occurred while running FFMPEG")
             self.processes.append(ffmpeg)
