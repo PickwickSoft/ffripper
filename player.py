@@ -46,7 +46,7 @@ class Player:
 
     def set_volume(self, volume):
         """
-
+        Set volume for player
         :param volume: float between 0.0, representing mute and 1.0 representing maximal volume
         """
         self._player.set_property('volume', volume)
