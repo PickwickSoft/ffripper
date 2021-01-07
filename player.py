@@ -93,11 +93,16 @@ class Player:
         Returns the length of set track
         :return: int
         """
-        success, duration = self._player.query_duration(Gst.Format.TIME)
-        if success:
-            duration = duration / Gst.SECOND
+        if self.duration == 0:
+            while True:
+                success, duration = self._player.query_duration(Gst.Format.TIME)
+                if success:
+                    duration = duration / Gst.SECOND
+                    break
+            if not success:
+                raise LookupError
         else:
-            raise LookupError
+            duration = self.duration
         return duration
 
     def get_position(self):
@@ -105,11 +110,13 @@ class Player:
         Returns the current position
         :return: int
         """
-        success, position = self._player.query_position(Gst.Format.TIME)
+        while True:
+            success, position = self._player.query_position(Gst.Format.TIME)
+            if success:
+                position = float(position) / Gst.SECOND
+                break
         if not success:
             raise Exception("Couldn't fetch current song position to update slider")
-        else:
-            position = float(position) / Gst.SECOND
         return position
 
 

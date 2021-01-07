@@ -311,9 +311,9 @@ class Handler:
         if not self.player.is_playing:
             return False
         else:
-            slider.set_range(0, self.player.get_duration() / Gst.SECOND)
+            slider.set_range(0, self.player.get_duration())
             slider.handler_block(self.slider_handler_id)
-            slider.set_value(float(self.player.get_position()) / Gst.SECOND)
+            slider.set_value(self.player.get_position())
             slider.handler_unblock(self.slider_handler_id)
 
             return True
