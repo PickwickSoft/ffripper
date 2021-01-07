@@ -24,7 +24,8 @@ class MusicbrainzClient:
         try:
             result = musicbrainzngs.get_releases_by_discid(self.id, includes=["recordings", "artists", "recording-rels",
                                                                               "labels", "artist-rels", "release-rels",
-                                                                              "work-rels", "aliases"])
+                                                                              "work-rels", "aliases", "artist-credits",
+                                                                              "release-groups"])
         except musicbrainzngs.musicbrainz.NetworkError:
             raise RipperError(Reason.NETWORKERROR, "No Internet Connection")
         except:

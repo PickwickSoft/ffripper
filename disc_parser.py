@@ -34,15 +34,14 @@ class CdDiscParser(CdInfoParser):
                 if 0 < len(self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list']):
                     for f in range(len(self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list'])):
                         if self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list'][f]['id'] == self.disc_id:
-                            print(self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'][i]['recording'][
-                                      "title"])
                             for j in range(len(self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'])):
                                 tracks.append(
                                     TrackInfo(self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'][j]
                                               ['recording']["title"],
                                               self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'][j][
                                                   'length'],
-                                              None, None))
+                                              None, self.dict['disc']['release-list'][0]['medium-list'][i]['track-list']
+                                              [j]['recording']['artist-credit'][0]['artist']['name']))
         except IndexError:
             for i in range(0, len(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'])):
                 tracks.append(

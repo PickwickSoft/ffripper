@@ -133,7 +133,7 @@ class MetadataTreeview:
         self.list_store = Gtk.ListStore(bool, str, str, str)
         try:
             for i in range(len(tracks)):
-                self.list_store.append([False, str(i + 1), tracks[i].get_name(), self.metadata.get_artist()])
+                self.list_store.append([False, str(i + 1), tracks[i].get_name(), tracks[i].get_artist()])
         except TypeError:
             for j in range(len(self.disc_tracks)):
                 self.list_store.append([False, str(j + 1), self.disc_tracks[j], ""])
