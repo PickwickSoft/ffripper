@@ -56,10 +56,11 @@ class CopyProcessor:
             self.listener.on_filename(track_info.get_name())
             start_time.append(time.time())
             print(time.time(), ": starting subprocess ", i)
-            rip_command = "ffmpeg -y -i \"{}/{}\" -metadata title=\"{}\" -metadata artist=\"{}\" -metadata album=\"{}" \
-                          "\" \"{}/{}\"".format(self.input_location, self.audio_files[i], track_info.get_name(),
-                                                self.meta.get_artist(), self.meta.get_album(), self.output_location,
-                                                current_audio_file)
+            rip_command = "ffmpeg -y -i \"{0}/{1}\" -metadata title=\"{2}\" -metadata artist=\"{3}\" -metadata " \
+                          "album=\"{4} \" \"{5}/{6}\"".format(self.input_location, self.audio_files[i],
+                                                              track_info.get_name(), track_info.get_artist(),
+                                                              self.meta.get_album(), self.output_location,
+                                                              current_audio_file)
             try:
                 ffmpeg = subprocess.Popen(shlex.split(rip_command), stderr=subprocess.STDOUT)
             except:

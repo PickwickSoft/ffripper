@@ -188,7 +188,7 @@ class MetadataTreeview:
         for i in range(len(self.list_store)):
             if self.list_store[i][0]:
                 self.tracks_2_copy.append(title_numbers[i])
-                tracks.append(TrackInfo(self.list_store[i][2], None, None, None))
+                tracks.append(TrackInfo(self.list_store[i][2], None, None, self.list_store[i][3]))
         self.copy_metadata = self.return_info(tracks)
         self.rip()
 
