@@ -3,4 +3,4 @@ always_eject: false
 artistdirectory: false
 autodetect: true
 outputFolder: /home/stefan/Musik/TestFolder
-standardFormat: ogg
+standardFormat: oga

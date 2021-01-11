@@ -86,7 +86,7 @@ class Loader:
 
     @staticmethod
     def load_settings():
-        with open("../settings.yaml") as f:
+        with open("../data/settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
         autodetect = settings["autodetect"]
         always_eject = settings['always_eject']
@@ -355,7 +355,7 @@ class Handler:
     @staticmethod
     def setting_button_clicked(button):
         settings_window.show_all()
-        with open("../settings.yaml") as f:
+        with open("../data/settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
             if settings['always_eject']:
                 eject_standard.set_active(True)
@@ -382,27 +382,27 @@ class Handler:
 
     @staticmethod
     def apply_button_clicked(button):
-        with open("../settings.yaml") as f:
+        with open("../data/settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
 
         settings['autodetect'] = auto_detect.get_active()
 
-        with open("../settings.yaml", "w") as f:
+        with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings['always_eject'] = eject_standard.get_active()
 
-        with open("../settings.yaml", "w") as f:
+        with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings['outputFolder'] = standard_output_entry.get_text()
 
-        with open("../settings.yaml", "w") as f:
+        with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings['standardFormat'] = standard_format.get_active_text()
 
-        with open("../settings.yaml", "w") as f:
+        with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings_window.hide()
