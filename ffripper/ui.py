@@ -274,6 +274,7 @@ class Handler:
         self.player = Player(self.refresh_button)
         self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[0])
         self.slider_handler_id = slider.connect("value-changed", self.on_slider_seek)
+        self.about_dialog = builder.get_object("about_dialog")
 
     @staticmethod
     def ok_button_clicked(button):
@@ -408,6 +409,9 @@ class Handler:
         settings_window.hide()
 
         Loader.load_settings()
+
+    def about_clicked(self, button):
+        self.about_dialog.run()
 
 
 builder = Gtk.Builder()
