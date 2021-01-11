@@ -19,18 +19,33 @@ This file creates the ui and runs ffripper
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #   USA
 #
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; version 3 of the License.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+#   General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+#   USA
+#
 
 import os
 import gi
 import yaml
 from threading import Thread
-from process_launcher import CopyProcessor, CopyProcessorListener
-from errors import RipperError
-from metadata import Metadata
-from cdrom_info_object import CDInfo
-from track_info import TrackInfo
-from player import Player
-from ui_elements import UiObjects, Dialog
+from ffripper.process_launcher import CopyProcessor, CopyProcessorListener
+from ffripper.errors import RipperError
+from ffripper.metadata import Metadata
+from ffripper.cdrom_info_object import CDInfo
+from ffripper.track_info import TrackInfo
+from ffripper.player import Player
+from ffripper.ui_elements import UiObjects, Dialog
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Gst
@@ -71,7 +86,7 @@ class Loader:
 
     @staticmethod
     def load_settings():
-        with open("settings.yaml") as f:
+        with open("../settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
         autodetect = settings["autodetect"]
         always_eject = settings['always_eject']
@@ -340,7 +355,7 @@ class Handler:
     @staticmethod
     def setting_button_clicked(button):
         settings_window.show_all()
-        with open("settings.yaml") as f:
+        with open("../settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
             if settings['always_eject']:
                 eject_standard.set_active(True)
@@ -367,27 +382,27 @@ class Handler:
 
     @staticmethod
     def apply_button_clicked(button):
-        with open("settings.yaml") as f:
+        with open("../settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
 
         settings['autodetect'] = auto_detect.get_active()
 
-        with open("settings.yaml", "w") as f:
+        with open("../settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings['always_eject'] = eject_standard.get_active()
 
-        with open("settings.yaml", "w") as f:
+        with open("../settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings['outputFolder'] = standard_output_entry.get_text()
 
-        with open("settings.yaml", "w") as f:
+        with open("../settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings['standardFormat'] = standard_format.get_active_text()
 
-        with open("settings.yaml", "w") as f:
+        with open("../settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
         settings_window.hide()
@@ -396,7 +411,7 @@ class Handler:
 
 
 builder = Gtk.Builder()
-builder.add_from_file("data/cd.glade")
+builder.add_from_file("../data/cd.glade")
 
 output = builder.get_object("output_entry")
 filename_label = builder.get_object("label1")

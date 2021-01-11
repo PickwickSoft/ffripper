@@ -18,6 +18,10 @@
 #   USA
 #
 
+"""
+A fast, powerful and simple-to-use graphical CD ripper
+"""
+
 __major__ = 1
 __minor__ = 0
 __release__ = 0
