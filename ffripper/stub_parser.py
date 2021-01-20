@@ -31,6 +31,8 @@
 #   USA
 #
 
+import musicbrainzngs
+
 from cd_info_parser import CdInfoParser
 from ffripper.track_info import TrackInfo
 from ffripper.cdrom_info_object import CDInfo
@@ -40,12 +42,14 @@ class CdStubParser(CdInfoParser):
 
     def __init__(self, dictionary):
         self.dict = dictionary
+        self.artist = ""
 
     def get_disc_info(self):
         album = self.parse_for_album()
-        artist = self.parse_for_artist()
+        self.artist = self.parse_for_artist()
         tracks = self.parse_for_tracks()
-        return CDInfo(album, artist, tracks)
+        cover = self.parse_for_cover()
+        return CDInfo(album, self.artist, tracks, cover)
 
     def parse_for_album(self):
         album = self.dict['cdstub']["title"]
@@ -59,5 +63,11 @@ class CdStubParser(CdInfoParser):
         tracks = []
         for i in range(0, len(self.dict['cdstub']["track-list"])):
             tracks.append(TrackInfo(self.dict['cdstub']["track-list"][i]["title"],
-                                    self.dict['cdstub']["track-list"][i]["length"], None, None))
+                                    self.dict['cdstub']["track-list"][i]["length"], None, self.artist))
         return tracks
+
+    def parse_for_cover(self):
+        try:
+            return musicbrainzngs.get_image(self.dict['cdstub']['id'], 'front')  # Not working right now: ResponseError
+        except musicbrainzngs.ResponseError:
+            return ''

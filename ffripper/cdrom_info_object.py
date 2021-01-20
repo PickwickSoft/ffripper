@@ -18,10 +18,11 @@
 
 class CDInfo:
 
-    def __init__(self, album, artist, tracks):
+    def __init__(self, album, artist, tracks, cover):
         self.album = album
         self.artist = artist
         self.tracks = tracks
+        self.cover = cover
 
     def get_album(self):
         return self.album
@@ -31,3 +32,6 @@ class CDInfo:
 
     def get_tracks(self):
         return self.tracks
+
+    def get_cover(self):
+        return self.cover

@@ -65,3 +65,9 @@ class Metadata:
             return self.metadata.get_tracks()
         except AttributeError:
             return None
+
+    def get_cover(self):
+        try:
+            return self.metadata.get_cover()
+        except AttributeError:
+            return None

@@ -46,10 +46,10 @@ from ffripper.cdrom_info_object import CDInfo
 from ffripper.track_info import TrackInfo
 from ffripper.player import Player
 from ffripper.ui_elements import UiObjects, Dialog
+from ffripper.image import Image
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gst
-
+from gi.repository import Gtk, GLib, Gst, GdkPixbuf
 
 formats = ["mp2", "mp3",
            "wav", "ogg",
@@ -124,6 +124,9 @@ class MetadataTreeview:
         self.cp = None
         self.copy_metadata = None
         self.tracks_2_copy = []
+        self._image = builder.get_object("cover_image")
+        if self.metadata.get_cover() != "":
+            self._image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
 
         # Scrolled Window
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -194,7 +197,7 @@ class MetadataTreeview:
 
     @staticmethod
     def return_info(tracks):
-        return CDInfo(album_entry.get_text(), artist_entry.get_text(), tracks)
+        return CDInfo(album_entry.get_text(), artist_entry.get_text(), tracks, None)
 
     def on_copy_clicked(self):
         title_numbers = os.listdir(local_mount_point)

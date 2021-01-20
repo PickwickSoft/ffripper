@@ -30,10 +30,9 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #   USA
 #
-
+import musicbrainzngs
 from ffripper.cd_info_parser import CdInfoParser
 from ffripper.track_info import TrackInfo
-from ffripper.errors import Reason, RipperError
 from ffripper.cdrom_info_object import CDInfo
 
 
@@ -42,18 +41,24 @@ class CdDiscParser(CdInfoParser):
     def __init__(self, dictionary):
         self.dict = dictionary
         self.disc_id = self.dict['disc']['id']
+        self._mb_id = ""
+        self._release = None
+        self._album = ""
 
     def get_disc_info(self):
-        try:
-            album = self.parse_for_album()
-            artist = self.parse_for_artist()
-            tracks = self.parse_for_tracks()
-        except:
-            raise RipperError(Reason.UNKNOWNERROR, "An unknown Error occurred while Parsing")
-        return CDInfo(album, artist, tracks)
+        tracks = self.parse_for_tracks()
+        album = self.parse_for_album()
+        self._album = album
+        artist = self.parse_for_artist()
+        cover = self.parse_for_cover()
+
+        return CDInfo(album, artist, tracks, cover)
 
     def parse_for_album(self):
-        album = self.dict["disc"]["release-list"][0]["title"]
+        try:
+            album = self._release['title']
+        except KeyError:
+            album = self.dict["disc"]["release-list"][0]["title"]
         return album
 
     def parse_for_artist(self):
@@ -67,6 +72,8 @@ class CdDiscParser(CdInfoParser):
                 if 0 < len(self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list']):
                     for f in range(len(self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list'])):
                         if self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list'][f]['id'] == self.disc_id:
+                            self._mb_id = self.dict['disc']['release-list'][0]['id']
+                            self._release = self.dict['disc']['release-list'][0]['medium-list'][i]
                             for j in range(len(self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'])):
                                 tracks.append(
                                     TrackInfo(self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'][j]
@@ -83,3 +90,19 @@ class CdDiscParser(CdInfoParser):
                               self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'][i]['length'],
                               None, None))
         return tracks
+
+    def parse_for_cover(self):
+        if self.dict['disc']['release-list'][0]['cover-art-archive']['artwork'] == 'true':
+            print(self._mb_id)
+            """
+            cover_list = musicbrainzngs.get_image_list(self._mb_id)
+            for i in range(len(cover_list['images'])):
+                if cover_list['images'][i]['comment'].find(self._album) != -1:
+                    if cover_list['images'][i]['comment'].find('Front') != -1:
+                        cover = musicbrainzngs.get_image(self._mb_id, i)
+            """
+            cover = musicbrainzngs.get_image(self._mb_id, 'front')
+            return cover
+        else:
+            print('no cover!')
+            return ""
