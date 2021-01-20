@@ -233,7 +233,6 @@ class MetadataTreeview:
         Dialog.notify()
         copyButton.set_label(copy_button_title)
         progressbar.set_fraction(fraction)
-        filename_label.set_text(filename_label_text)
 
     def rip(self):
         if os.path.isdir(local_mount_point):
@@ -267,7 +266,7 @@ class MyCopyListener(CopyProcessorListener):
 
     @staticmethod
     def on_filename(file):
-        filename_label.set_text("Processing: %s" % file)
+        pass
 
 
 class Handler:
