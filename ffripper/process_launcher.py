@@ -49,7 +49,7 @@ class CopyProcessorListener(abc.ABC):
 
 class CopyProcessor:
 
-    def __init__(self, input_location, output_location, file_format, listener, metadata, audio_files):
+    def __init__(self, input_location, output_location, file_format, listener, metadata, audio_files, cover):
         self.input_location = input_location
         self.output_location = output_location
         self.format = file_format
@@ -60,21 +60,22 @@ class CopyProcessor:
         self.meta = metadata
         self.track_info = self.meta.get_tracks()
         self.processes = []
+        self.cover = cover
 
     def stop_copy(self):
         self.should_continue = False
-        for i in range(0, len(self.processes)):
+        for i in range(len(self.processes)):
             print("Terminating Process %d" % i)
             self.processes[i].kill()
             print("Process %d Closed" % i)
 
     @staticmethod
     def file_filter(listed_dir):
-        file_list = []
-        for i in range(0, len(listed_dir)):
-            if listed_dir[i].endswith('.wav'):
-                file_list.append(listed_dir[i])
-        return file_list
+        return [
+            listed_dir[i]
+            for i in range(len(listed_dir))
+            if listed_dir[i].endswith('.wav')
+        ]
 
     def run(self):
         files = len(self.audio_files)
@@ -83,18 +84,21 @@ class CopyProcessor:
             if not self.should_continue:
                 return
             track_info = self.track_info[i]
-            current_audio_file = track_info.get_name()
-            current_audio_file += "."
-            current_audio_file += self.format
+            current_audio_file = "{0}.{1}".format(track_info.get_name(), self.format)
             self.listener.on_filename(track_info.get_name())
             start_time.append(time.time())
             print(time.time(), ": starting subprocess ", i)
-            rip_command = "ffmpeg -y -i \"{0}/{1}\" -metadata title=\"{2}\" -metadata artist=\"{3}\" -metadata " \
-                          "album=\"{4} \" \"{5}/{6}\"".format(self.input_location, self.audio_files[i],
-                                                              track_info.get_name(), track_info.get_artist(),
-                                                              self.meta.get_album(), self.output_location,
-                                                              current_audio_file)
+            rip_command = "ffmpeg -y -i \"{0}/{1}\" -i \"{2}\" -metadata title=\"{3}\" " \
+                          "-metadata artist=\"{4}\" -metadata album=\"{5} \" \"{6}/{7}\"".format(self.input_location,
+                                                                                                 self.audio_files[i],
+                                                                                                 self.cover,
+                                                                                                 track_info.get_name(),
+                                                                                                 track_info.get_artist(),
+                                                                                                 self.meta.get_album(),
+                                                                                                 self.output_location,
+                                                                                                 current_audio_file)
             try:
+                print(rip_command)
                 ffmpeg = subprocess.Popen(shlex.split(rip_command), stderr=subprocess.STDOUT)
             except:
                 raise RipperError(Reason.FFMPEGERROR, "An Error occurred while running FFMPEG")

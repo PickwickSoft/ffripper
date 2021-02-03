@@ -62,14 +62,22 @@ class CdDiscParser(CdInfoParser):
         return album
 
     def parse_for_artist(self):
-        artist = self.dict["disc"]["release-list"][0]["artist-credit"][0]["artist"]["name"]
-        return artist
+        return self.dict["disc"]["release-list"][0]["artist-credit"][0]["artist"][
+            "name"
+        ]
 
     def parse_for_tracks(self):
         tracks = []
         try:
             for i in range(len(self.dict['disc']['release-list'][0]['medium-list'])):
-                if 0 < len(self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list']):
+                if (
+                    len(
+                        self.dict['disc']['release-list'][0]['medium-list'][i][
+                            'disc-list'
+                        ]
+                    )
+                    > 0
+                ):
                     for f in range(len(self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list'])):
                         if self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list'][f]['id'] == self.disc_id:
                             self._mb_id = self.dict['disc']['release-list'][0]['id']
@@ -83,7 +91,7 @@ class CdDiscParser(CdInfoParser):
                                               None, self.dict['disc']['release-list'][0]['medium-list'][i]['track-list']
                                               [j]['recording']['artist-credit'][0]['artist']['name']))
         except IndexError:
-            for i in range(0, len(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'])):
+            for i in range(len(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'])):
                 tracks.append(
                     TrackInfo(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'][i]['recording'][
                                   "title"],
@@ -101,8 +109,7 @@ class CdDiscParser(CdInfoParser):
                     if cover_list['images'][i]['comment'].find('Front') != -1:
                         cover = musicbrainzngs.get_image(self._mb_id, i)
             """
-            cover = musicbrainzngs.get_image(self._mb_id, 'front')
-            return cover
+            return musicbrainzngs.get_image(self._mb_id, 'front')
         else:
             print('no cover!')
             return ""

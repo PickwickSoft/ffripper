@@ -16,6 +16,10 @@
 #   USA
 #
 
+import io
+import gi
+gi.require_version('GdkPixbuf', '2.0')
+from PIL import Image as PilImage
 from gi.repository import GLib, GdkPixbuf
 
 
@@ -46,3 +50,20 @@ class Image:
             print(e)
         else:
             return _loader.get_pixbuf()
+
+    @staticmethod
+    def bytes2png(data, output_dir, filename):   # type: (bytes, str, str) -> str
+        """
+        writes raw bytes to .png file
+        :param data: raw bytes
+        :param output_dir: path to output folder
+        :param filename: name of the file (file extension is added automatically)
+        :return: the full path to image
+        """
+        _result_file = output_dir + "/" + filename
+
+        _image = PilImage.open(io.BytesIO(data))
+        _image.save(_result_file + '.png', 'PNG')
+        return _result_file + ".png"
+
+

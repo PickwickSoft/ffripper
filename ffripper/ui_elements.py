@@ -82,3 +82,10 @@ class Dialog:
             "Process finished in: ..."
         )
         notification.show()
+
+
+class ImageContextMenu(Gtk.Menu):
+
+    def __init__(self, *args, **kwargs):
+        super(ImageContextMenu, self).__init__(*args, **kwargs)
+        self.append(Gtk.MenuItem("Save as png"))

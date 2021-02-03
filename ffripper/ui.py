@@ -45,11 +45,11 @@ from ffripper.metadata import Metadata
 from ffripper.cdrom_info_object import CDInfo
 from ffripper.track_info import TrackInfo
 from ffripper.player import Player
-from ffripper.ui_elements import UiObjects, Dialog
+from ffripper.ui_elements import UiObjects, Dialog, ImageContextMenu
 from ffripper.image import Image
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gst, GdkPixbuf
+from gi.repository import Gtk, GLib, Gst, GdkPixbuf, Gdk
 
 formats = ["mp2", "mp3",
            "wav", "ogg",
@@ -74,13 +74,15 @@ music_detect = True
 is_running = False
 directory_name, filename = os.path.split(os.path.abspath(__file__))
 os.chdir(directory_name)
+settings = Gtk.Settings.get_default()
+# settings.set_property("gtk-application-prefer-dark-theme", True)
 
 
 class Loader:
 
     @staticmethod
     def load_formats(audio_formats):
-        for i in range(0, len(audio_formats) - 1):
+        for i in range(len(audio_formats) - 1):
             format_chooser.append_text(audio_formats[i])
             standard_format.append_text(audio_formats[i])
 
@@ -95,7 +97,7 @@ class Loader:
         if output_folder != '':
             output.set_text(output_folder)
         if format_standard is not None:
-            for i in range(0, len(formats) - 1):
+            for i in range(len(formats) - 1):
                 if format_standard == formats[i]:
                     format_chooser.set_active(i)
 
@@ -108,8 +110,7 @@ class Preparer:
         self.output_folder = output.get_text()
 
     def return_all(self):
-        prepared_list = [self.input_dev, self.output_folder, self.format]
-        return prepared_list
+        return [self.input_dev, self.output_folder, self.format]
 
 
 class MetadataTreeview:
@@ -125,7 +126,10 @@ class MetadataTreeview:
         self.copy_metadata = None
         self.tracks_2_copy = []
         self._image = builder.get_object("cover_image")
-        if self.metadata.get_cover() != "":
+        self._image.connect_object("event", self.image_menu, ImageContextMenu())
+        self.cover_art = False
+        if (self.metadata.get_cover() != "") and (self.metadata.get_cover() is not None):
+            self.cover_art = True
             self._image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
 
         # Scrolled Window
@@ -215,8 +219,10 @@ class MetadataTreeview:
         info = Preparer().return_all()
         print(info)
         listener = MyCopyListener()
+        if self.cover_art:
+            cover = Image.bytes2png(self.metadata.get_cover(), info[1], "cover")
         try:
-            self.cp = CopyProcessor(info[0], info[1], info[2], listener, self.copy_metadata, self.tracks_2_copy)
+            self.cp = CopyProcessor(info[0], info[1], info[2], listener, self.copy_metadata, self.tracks_2_copy, cover)
             self.cp.run()
         except RipperError as error:
             print("An Error has occurred: ", error.reason.to_string())
@@ -224,7 +230,7 @@ class MetadataTreeview:
         self.t = Thread(target=self.execute_copy, args=())
         if eject_standard.get_active() == 1:
             os.system("eject")
-        GLib.idle_add(self.update_ui, "Copy", 0, "")
+        GLib.idle_add(self.update_ui, "Rip", 0, "")
         is_running = False
 
     @staticmethod
@@ -252,10 +258,16 @@ class MetadataTreeview:
     def kill_process(self):
         self.cp.stop_copy()
         self.t.join()
-        copyButton.set_label("Copy")
+        copyButton.set_label("Rip")
         progressbar.set_fraction(0)
         filename_label.set_text("")
         self.t = Thread(target=self.execute_copy, args=())
+
+    @staticmethod
+    def image_menu(widget, event):
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
+            # make widget popup
+            widget.popup(None, None, None, event.button, event.time)
 
 
 class MyCopyListener(CopyProcessorListener):
@@ -327,13 +339,12 @@ class Handler:
     def update_slider(self):
         if not self.player.is_playing:
             return False
-        else:
-            slider.set_range(0, self.player.get_duration())
-            slider.handler_block(self.slider_handler_id)
-            slider.set_value(self.player.get_position())
-            slider.handler_unblock(self.slider_handler_id)
+        slider.set_range(0, self.player.get_duration())
+        slider.handler_block(self.slider_handler_id)
+        slider.set_value(self.player.get_position())
+        slider.handler_unblock(self.slider_handler_id)
 
-            return True
+        return True
 
     def on_slider_seek(self, argument):
         seek_time_secs = slider.get_value()
@@ -367,7 +378,7 @@ class Handler:
             if settings['outputFolder'] != '':
                 standard_output_entry.set_text(str(settings['outputFolder']))
             if settings['standardFormat'] is not None:
-                for i in range(0, len(formats) - 1):
+                for i in range(len(formats) - 1):
                     if settings['standardFormat'] == formats[i]:
                         standard_format.set_active(i)
 
@@ -377,7 +388,8 @@ class Handler:
 
     @staticmethod
     def refresh_button_clicked(button):
-        pass
+        global metadata_view
+        metadata_view = MetadataTreeview()
 
     @staticmethod
     def eject_button_clicked(button):
@@ -414,6 +426,7 @@ class Handler:
 
     def about_clicked(self, button):
         self.about_dialog.run()
+
 
 
 builder = Gtk.Builder()

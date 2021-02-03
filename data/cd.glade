@@ -379,6 +379,8 @@
                                 <property name="margin_right">5</property>
                                 <property name="margin_top">5</property>
                                 <property name="margin_bottom">5</property>
+                                <property name="editable">False</property>
+                                <property name="caps_lock_warning">False</property>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -665,7 +667,7 @@ audio-volume-medium-symbolic</property>
             </child>
             <child>
               <object class="GtkButton" id="copy_button">
-                <property name="label" translatable="yes">Copy</property>
+                <property name="label" translatable="yes">Rip</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

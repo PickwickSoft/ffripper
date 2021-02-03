@@ -52,19 +52,21 @@ class CdStubParser(CdInfoParser):
         return CDInfo(album, self.artist, tracks, cover)
 
     def parse_for_album(self):
-        album = self.dict['cdstub']["title"]
-        return album
+        return self.dict['cdstub']["title"]
 
     def parse_for_artist(self):
-        artist = self.dict['cdstub']["artist"]
-        return artist
+        return self.dict['cdstub']["artist"]
 
     def parse_for_tracks(self):
-        tracks = []
-        for i in range(0, len(self.dict['cdstub']["track-list"])):
-            tracks.append(TrackInfo(self.dict['cdstub']["track-list"][i]["title"],
-                                    self.dict['cdstub']["track-list"][i]["length"], None, self.artist))
-        return tracks
+        return [
+            TrackInfo(
+                self.dict['cdstub']["track-list"][i]["title"],
+                self.dict['cdstub']["track-list"][i]["length"],
+                None,
+                self.artist,
+            )
+            for i in range(len(self.dict['cdstub']["track-list"]))
+        ]
 
     def parse_for_cover(self):
         try:
