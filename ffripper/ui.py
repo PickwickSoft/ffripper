@@ -219,6 +219,7 @@ class MetadataTreeview:
         info = Preparer().return_all()
         print(info)
         listener = MyCopyListener()
+        cover = None
         if self.cover_art:
             cover = Image.bytes2png(self.metadata.get_cover(), info[1], "cover")
         try:

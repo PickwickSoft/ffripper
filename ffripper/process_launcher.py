@@ -88,10 +88,14 @@ class CopyProcessor:
             self.listener.on_filename(track_info.get_name())
             start_time.append(time.time())
             print(time.time(), ": starting subprocess ", i)
-            rip_command = "ffmpeg -y -i \"{0}/{1}\" -i \"{2}\" -metadata title=\"{3}\" " \
+            cover_art_stream = (
+                "" if self.cover is None else "-i \"{0}\"".format(self.cover)
+            )
+
+            rip_command = "ffmpeg -y -i \"{0}/{1}\" {2} -metadata title=\"{3}\" " \
                           "-metadata artist=\"{4}\" -metadata album=\"{5} \" \"{6}/{7}\"".format(self.input_location,
                                                                                                  self.audio_files[i],
-                                                                                                 self.cover,
+                                                                                                 cover_art_stream,
                                                                                                  track_info.get_name(),
                                                                                                  track_info.get_artist(),
                                                                                                  self.meta.get_album(),
