@@ -33,7 +33,7 @@
 
 import musicbrainzngs
 
-from cd_info_parser import CdInfoParser
+from ffripper.cd_info_parser import CdInfoParser
 from ffripper.track_info import TrackInfo
 from ffripper.cdrom_info_object import CDInfo
 

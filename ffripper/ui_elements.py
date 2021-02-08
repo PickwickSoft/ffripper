@@ -25,6 +25,31 @@ gi.require_version('Notify', '0.7')
 from gi.repository import Notify
 
 
+class GladeWindow(object):
+    callbacks = {}
+    builder = None
+
+    def __init__(self, builder):
+        """ Init GladeWindow, stores the objects's potential callbacks for later.
+        You have to call connect_signals() when all descendants are ready. """
+        GladeWindow.builder = builder
+        GladeWindow.callbacks.update(dict([[x, getattr(self, x)]
+                                           for x in dir(self) if x.startswith('on_')]))
+
+    def __getattr__(self, attribute):
+        """ Allow direct use of window widget. """
+        widget = GladeWindow.builder.get_object(attribute)
+        if widget is None:
+            raise AttributeError('Widget \'%s\' not found' % attribute)
+        self.__dict__[attribute] = widget  # cache result
+        return widget
+
+    @staticmethod
+    def connect_signals():
+        """ Connect all GladeWindow objects to theirs respective signals """
+        GladeWindow.builder.connect_signals(GladeWindow.callbacks)
+
+
 class UiObjects:
 
     @staticmethod

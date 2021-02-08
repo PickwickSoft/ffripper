@@ -83,9 +83,6 @@ class CopyProcessor:
         for i in range(len(self.audio_files)):
             if not self.should_continue:
                 return
-            track_info = self.track_info[i]
-            current_audio_file = "{0}.{1}".format(track_info.get_name(), self.format)
-            self.listener.on_filename(track_info.get_name())
             start_time.append(time.time())
             print(time.time(), ": starting subprocess ", i)
             cover_art_stream = (
@@ -93,14 +90,17 @@ class CopyProcessor:
             )
 
             rip_command = "ffmpeg -y -i \"{0}/{1}\" {2} -metadata title=\"{3}\" " \
-                          "-metadata artist=\"{4}\" -metadata album=\"{5} \" \"{6}/{7}\"".format(self.input_location,
-                                                                                                 self.audio_files[i],
-                                                                                                 cover_art_stream,
-                                                                                                 track_info.get_name(),
-                                                                                                 track_info.get_artist(),
-                                                                                                 self.meta.get_album(),
-                                                                                                 self.output_location,
-                                                                                                 current_audio_file)
+                          "-metadata artist=\"{4}\" -metadata album=\"{5}\" \"{6}/{7}\"".format(
+                                                                                     self.input_location,
+                                                                                     self.audio_files[i],
+                                                                                     cover_art_stream,
+                                                                                     self.track_info[i].get_name(),
+                                                                                     self.track_info[i].get_artist(),
+                                                                                     self.meta.get_album(),
+                                                                                     self.output_location,
+                                                                                     "{0}.{1}".format(
+                                                                                         self.track_info[i].get_name(),
+                                                                                         self.format))
             try:
                 print(rip_command)
                 ffmpeg = subprocess.Popen(shlex.split(rip_command), stderr=subprocess.STDOUT)
@@ -112,5 +112,3 @@ class CopyProcessor:
             self.processes[j].wait()
             print("Process ", j, " finished after: ", time.time() - start_time[j])
             self.listener.on_copy_item(files)
-        # print('\n\nWait!\n\n')elapsedTime
-        self.listener.on_filename("Done")

@@ -1,25 +1,12 @@
-import os
-import site
-from gettext import gettext as _
-import pkg_resources
+#!/usr/bin/python3
 
-# read values from setup.py
-VERSION = pkg_resources.require('ffripper')[0].version
-NAME = pkg_resources.require('ffripper')[0].project_name
-SOURCE_PATH = pkg_resources.require('ffripper')[0].location
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
-# depending on where this file is installed to, make sure to use the proper
-# prefix path for data
-# https://docs.python.org/3/distutils/setupscript.html?highlight=package_data#installing-additional-files # noqa
-if SOURCE_PATH.startswith(site.USER_BASE):
-    DATA_PATH = os.path.join(site.USER_BASE, 'share/ffripper')
-elif SOURCE_PATH.startswith('/usr/local/'):
-    DATA_PATH = '/usr/local/share/ffripper'
-elif SOURCE_PATH.startswith('/usr/'):
-    DATA_PATH = '/usr/share/ffripper'
-elif SOURCE_PATH.startswith('/app/'):
-    # flatpak support
-    DATA_PATH = '/app/share/ffripper'
-else:
-    # installed with -e, running from the cloned git source
-    DATA_PATH = os.path.join(SOURCE_PATH, 'data')
+from ffripper.ui import main
+
+builder = Gtk.Builder()
+builder.add_from_file("../data/ffripper.glade")
+
+main(builder)

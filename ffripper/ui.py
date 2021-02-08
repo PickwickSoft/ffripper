@@ -45,7 +45,7 @@ from ffripper.metadata import Metadata
 from ffripper.cdrom_info_object import CDInfo
 from ffripper.track_info import TrackInfo
 from ffripper.player import Player
-from ffripper.ui_elements import UiObjects, Dialog, ImageContextMenu
+from ffripper.ui_elements import UiObjects, Dialog, ImageContextMenu, GladeWindow
 from ffripper.image import Image
 
 gi.require_version("Gtk", "3.0")
@@ -74,8 +74,6 @@ music_detect = True
 is_running = False
 directory_name, filename = os.path.split(os.path.abspath(__file__))
 os.chdir(directory_name)
-settings = Gtk.Settings.get_default()
-# settings.set_property("gtk-application-prefer-dark-theme", True)
 
 
 class Loader:
@@ -83,8 +81,8 @@ class Loader:
     @staticmethod
     def load_formats(audio_formats):
         for i in range(len(audio_formats) - 1):
-            format_chooser.append_text(audio_formats[i])
-            standard_format.append_text(audio_formats[i])
+            window.format_chooser.append_text(audio_formats[i])
+            window.standard_format.append_text(audio_formats[i])
 
     @staticmethod
     def load_settings():
@@ -95,46 +93,68 @@ class Loader:
         output_folder = settings['outputFolder']
         format_standard = settings['standardFormat']
         if output_folder != '':
-            output.set_text(output_folder)
+            window.output_entry.set_text(output_folder)
         if format_standard is not None:
             for i in range(len(formats) - 1):
                 if format_standard == formats[i]:
-                    format_chooser.set_active(i)
+                    window.format_chooser.set_active(i)
 
 
 class Preparer:
 
     def __init__(self, ):
         self.input_dev = local_mount_point
-        self.format = format_chooser.get_active_text()
-        self.output_folder = output.get_text()
+        self.format = window.format_chooser.get_active_text()
+        self.output_folder = window.output_entry.get_text()
 
     def return_all(self):
         return [self.input_dev, self.output_folder, self.format]
 
 
-class MetadataTreeview:
+class MyCopyListener(CopyProcessorListener):
+    @staticmethod
+    def on_copy_item(count):
+        percentage = 1 / count
+        window.progressbar.set_fraction(window.progressbar.get_fraction() + percentage)
 
-    def __init__(self):
+    @staticmethod
+    def on_filename(file):
+        pass
+
+
+class RipperWindow(GladeWindow):
+
+    def __init__(self, builder):
+        GladeWindow.__init__(self, builder)
+
+        self.list_store = Gtk.ListStore(bool, str, str, str)
+        self.tracks_2_copy = []
+        self.copy_metadata = None
+        self.copy = None
+        self.metadata = None
+        self.thread = Thread(target=self.execute_copy, args=())
+        self.cover_art = False
+        self.disc_tracks = None
+        self.create_treeview()
+
+        self.widget = builder.get_object('main_window')
+        self.player = Player(self.refresh_button)
+        if os.path.isdir(local_mount_point):
+            self.player.set_file(local_mount_point + "/" + self.disc_tracks[0])
+        self.slider_handler_id = self.slider.connect("value-changed", self.on_slider_seek)
+        GladeWindow.connect_signals()
+        self.widget.connect("destroy", Gtk.main_quit)
+        self.widget.show_all()
+
+    def create_treeview(self):
         try:
             self.metadata = Metadata()
         except RipperError as error:
             Dialog(error.reason, error.text).error_dialog()
-            self.metadata = None
-        self.t = Thread(target=self.execute_copy, args=())
-        self.cp = None
-        self.copy_metadata = None
-        self.tracks_2_copy = []
-        self._image = builder.get_object("cover_image")
-        self._image.connect_object("event", self.image_menu, ImageContextMenu())
-        self.cover_art = False
+        self.cover_image.connect_object("event", self.image_menu, ImageContextMenu())
         if (self.metadata.get_cover() != "") and (self.metadata.get_cover() is not None):
             self.cover_art = True
-            self._image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
-
-        # Scrolled Window
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled.set_min_content_height(200)
+            self.cover_image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
 
         # Tracks default
         tracks = None
@@ -146,12 +166,11 @@ class MetadataTreeview:
 
         # Write to Entries
         if self.metadata is not None:
-            artist_entry.set_text(self.metadata.get_artist())
-            album_entry.set_text(self.metadata.get_album())
+            self.artist_entry.set_text(self.metadata.get_artist())
+            self.album_entry.set_text(self.metadata.get_album())
 
             # Metadata append
             tracks = self.metadata.get_tracks()
-        self.list_store = Gtk.ListStore(bool, str, str, str)
         try:
             for i in range(len(tracks)):
                 self.list_store.append([False, str(i + 1), tracks[i].get_name(), tracks[i].get_artist()])
@@ -159,33 +178,33 @@ class MetadataTreeview:
             for j in range(len(self.disc_tracks)):
                 self.list_store.append([False, str(j + 1), self.disc_tracks[j], ""])
 
-        tree_view.set_model(self.list_store)
+        self.tree_view.set_model(self.list_store)
 
         # Toggle Buttons
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", self.on_cell_toggled)
         column_toggle = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
-        tree_view.append_column(column_toggle)
+        self.tree_view.append_column(column_toggle)
 
         # Track Numbers
         renderer_track_number = Gtk.CellRendererText()
         column_track_number = Gtk.TreeViewColumn("Nr.", renderer_track_number, text=1)
-        tree_view.append_column(column_track_number)
+        self.tree_view.append_column(column_track_number)
         renderer_track_number.connect("edited", self.text_edited)
 
         # Audio Titles
         renderer_title = Gtk.CellRendererText()
         renderer_title.set_property("editable", True)
         column_title = Gtk.TreeViewColumn("Title", renderer_title, text=2)
-        tree_view.append_column(column_title)
-        renderer_title.connect("edited", self.text_edited2)
+        self.tree_view.append_column(column_title)
+        renderer_title.connect("edited", self.title_text_edited)
 
         # Audio Artists
         renderer_artist = Gtk.CellRendererText()
         renderer_artist.set_property("editable", True)
         column_artist = Gtk.TreeViewColumn("Artist", renderer_artist, text=3)
-        tree_view.append_column(column_artist)
-        renderer_artist.connect("edited", self.text_edited3)
+        self.tree_view.append_column(column_artist)
+        renderer_artist.connect("edited", self.artist_text_edited)
 
     def text_edited(self, widget, path, text):
         self.list_store[path][1] = text
@@ -193,17 +212,16 @@ class MetadataTreeview:
     def on_cell_toggled(self, widget, path):
         self.list_store[path][0] = not self.list_store[path][0]
 
-    def text_edited2(self, widget, path, text):
+    def title_text_edited(self, widget, path, text):
         self.list_store[path][2] = text
 
-    def text_edited3(self, widget, path, text):
+    def artist_text_edited(self, widget, path, text):
         self.list_store[path][3] = text
 
-    @staticmethod
-    def return_info(tracks):
-        return CDInfo(album_entry.get_text(), artist_entry.get_text(), tracks, None)
+    def return_info(self, tracks):
+        return CDInfo(self.album_entry.get_text(), self.artist_entry.get_text(), tracks, None)
 
-    def on_copy_clicked(self):
+    def copy_clicked(self):
         title_numbers = os.listdir(local_mount_point)
         tracks = []
         for i in range(len(self.list_store)):
@@ -223,13 +241,14 @@ class MetadataTreeview:
         if self.cover_art:
             cover = Image.bytes2png(self.metadata.get_cover(), info[1], "cover")
         try:
-            self.cp = CopyProcessor(info[0], info[1], info[2], listener, self.copy_metadata, self.tracks_2_copy, cover)
-            self.cp.run()
+            self.copy = CopyProcessor(info[0], info[1], info[2], listener, self.copy_metadata, self.tracks_2_copy,
+                                      cover)
+            self.copy.run()
         except RipperError as error:
             print("An Error has occurred: ", error.reason.to_string())
             GLib.idle_add(Dialog(error.reason.to_string(), error.text).error_dialog)
         self.t = Thread(target=self.execute_copy, args=())
-        if eject_standard.get_active() == 1:
+        if window.eject_standard.get_active() == 1:
             os.system("eject")
         GLib.idle_add(self.update_ui, "Rip", 0, "")
         is_running = False
@@ -238,30 +257,29 @@ class MetadataTreeview:
     def update_ui(copy_button_title, fraction, filename_label_text):
         # Dialog.finished_dialog()
         Dialog.notify()
-        copyButton.set_label(copy_button_title)
-        progressbar.set_fraction(fraction)
+        window.copy_button.set_label(copy_button_title)
+        window.progressbar.set_fraction(fraction)
 
     def rip(self):
         if os.path.isdir(local_mount_point):
-            if format_chooser.get_active_text() != "":
-                path = output.get_text()
+            if window.format_chooser.get_active_text() != "":
+                path = window.output_entry.get_text()
                 if os.path.isdir(path):
-                    self.t.start()
-                    copyButton.set_label("Cancel")
+                    self.thread.start()
+                    window.copy_button.set_label("Cancel")
                     return
                 else:
-                    directory_error.format_secondary_text(path + "\n")
-                    directory_error.run()
+                    window.directory_error.format_secondary_text(path + "\n")
+                    window.directory_error.run()
         else:
             print("No Device found")
             Dialog("No Disc Found", "Please insert a disc").error_dialog()
 
     def kill_process(self):
-        self.cp.stop_copy()
+        self.copy.stop_copy()
         self.t.join()
-        copyButton.set_label("Rip")
-        progressbar.set_fraction(0)
-        filename_label.set_text("")
+        window.copy_button.set_label("Rip")
+        window.progressbar.set_fraction(0)
         self.t = Thread(target=self.execute_copy, args=())
 
     @staticmethod
@@ -270,201 +288,155 @@ class MetadataTreeview:
             # make widget popup
             widget.popup(None, None, None, event.button, event.time)
 
+    def on_ok_button_clicked(self, button):
+        self.directory_error.hide()
 
-class MyCopyListener(CopyProcessorListener):
-    @staticmethod
-    def on_copy_item(count):
-        percentage = 1 / count
-        progressbar.set_fraction(progressbar.get_fraction() + percentage)
-
-    @staticmethod
-    def on_filename(file):
-        pass
-
-
-class Handler:
-
-    def __init__(self):
-        global metadata_view
-        self.player = Player(self.refresh_button)
-        self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[0])
-        self.slider_handler_id = slider.connect("value-changed", self.on_slider_seek)
-        self.about_dialog = builder.get_object("about_dialog")
-
-    @staticmethod
-    def ok_button_clicked(button):
-        directory_error.hide()
-
-    @staticmethod
-    def on_copy_button_clicked(button):
+    def on_copy_button_clicked(self, button):
         global is_running
         if os.path.isdir(local_mount_point):
-            if format_chooser.get_active_text() != "":
-                if os.path.isdir(output.get_text()):
+            if self.format_chooser.get_active_text() != "":
+                if os.path.isdir(window.output_entry.get_text()):
                     if not is_running:
                         is_running = True
-                        metadata_view.on_copy_clicked()
+                        self.copy_clicked()
                     else:
-                        metadata_view.kill_process()
+                        self.kill_process()
                         is_running = False
 
                 else:
-                    directory_error.format_secondary_text(output.get_text() + "\n")
-                    directory_error.run()
+                    self.directory_error.format_secondary_text(window.output_entry.get_text() + "\n")
+                    self.directory_error.run()
         else:
             print("No Device found")
             Dialog("No Disc Found", "Please insert a disc").error_dialog()
 
-    @staticmethod
-    def search_button3_clicked(button):
-        ui_objects = UiObjects()
-        folder = ui_objects.chooser()
-        standard_output_entry.set_text(folder)
-
-    @staticmethod
-    def search_button2_clicked(button):
+    def on_search_button3_clicked(self, button):
         ui_objects = UiObjects()
         folder = ui_objects.chooser()
         if folder is not None:
-            output.set_text(folder)
+            self.standard_output_entry.set_text(folder)
 
-    def player_button_clicked(self, button):
-        if player_button.get_image() == play_image:
-            player_button.set_image(pause_image)
+    def on_search_button2_clicked(self, button):
+        ui_objects = UiObjects()
+        folder = ui_objects.chooser()
+        if folder is not None:
+            self.output_entry.set_text(folder)
+
+    def on_player_button_clicked(self, button):
+        if self.player_button.get_image() == self.play_image:
+            self.player_button.set_image(self.pause_image)
             self.player.play()
             GLib.timeout_add(1000, self.update_slider)
         else:
-            player_button.set_image(play_image)
+            self.player_button.set_image(self.play_image)
             self.player.pause()
 
     def update_slider(self):
         if not self.player.is_playing:
             return False
-        slider.set_range(0, self.player.get_duration())
-        slider.handler_block(self.slider_handler_id)
-        slider.set_value(self.player.get_position())
-        slider.handler_unblock(self.slider_handler_id)
+        self.slider.set_range(0, self.player.get_duration())
+        self.slider.handler_block(self.slider_handler_id)
+        self.slider.set_value(self.player.get_position())
+        self.slider.handler_unblock(self.slider_handler_id)
 
         return True
 
     def on_slider_seek(self, argument):
-        seek_time_secs = slider.get_value()
+        seek_time_secs = self.slider.get_value()
         self.player._player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
                                         seek_time_secs * Gst.SECOND)
 
-    def volume_changed(self, button, volume):
+    def on_volume_changed(self, button, volume):
         self.player.set_volume(volume)
 
-    @staticmethod
-    def refresh_button(player):
-        player_button.set_image(play_image)
+    def refresh_button(self, player):
+        self.player_button.set_image(self.play_image)
 
-    def tree_view_columns_changed(self, widget, row, column):
+    def on_tree_view_columns_changed(self, widget, row, column):
         print("Changed row: ", row)
         self.player.reset()
         index = int(row.get_indices()[0])
-        self.player.set_file(local_mount_point + "/" + metadata_view.disc_tracks[index])
-        player_button.set_image(pause_image)
+        self.player.set_file(local_mount_point + "/" + self.disc_tracks[index])
+        self.player_button.set_image(self.pause_image)
         self.player.play()
 
-    @staticmethod
-    def setting_button_clicked(button):
-        settings_window.show_all()
+    def on_setting_button_clicked(self, button):
+        self.settings_window.show_all()
         with open("../data/settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
             if settings['always_eject']:
-                eject_standard.set_active(True)
+                self.eject_standard.set_active(True)
             if settings['autodetect']:
-                auto_detect.set_active(True)
+                self.auto_detect.set_active(True)
             if settings['outputFolder'] != '':
-                standard_output_entry.set_text(str(settings['outputFolder']))
+                self.standard_output_entry.set_text(str(settings['outputFolder']))
             if settings['standardFormat'] is not None:
                 for i in range(len(formats) - 1):
                     if settings['standardFormat'] == formats[i]:
-                        standard_format.set_active(i)
+                        self.standard_format.set_active(i)
+
+    def on_cancel_button_clicked(self, button):
+        self.settings_window.hide()
+
+    def on_refresh_button_clicked(self, button):
+        self.create_treeview()
 
     @staticmethod
-    def cancel_button_clicked(button):
-        settings_window.hide()
-
-    @staticmethod
-    def refresh_button_clicked(button):
-        global metadata_view
-        metadata_view = MetadataTreeview()
-
-    @staticmethod
-    def eject_button_clicked(button):
+    def on_eject_button_clicked(button):
         os.system("eject")
 
-    @staticmethod
-    def apply_button_clicked(button):
+    def on_apply_button_clicked(self, button):
         with open("../data/settings.yaml") as f:
             settings = yaml.load(f, Loader=yaml.FullLoader)
 
-        settings['autodetect'] = auto_detect.get_active()
+        settings['autodetect'] = self.auto_detect.get_active()
 
         with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
-        settings['always_eject'] = eject_standard.get_active()
+        settings['always_eject'] = self.eject_standard.get_active()
 
         with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
-        settings['outputFolder'] = standard_output_entry.get_text()
+        settings['outputFolder'] = self.standard_output_entry.get_text()
 
         with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
-        settings['standardFormat'] = standard_format.get_active_text()
+        settings['standardFormat'] = self.standard_format.get_active_text()
 
         with open("../data/settings.yaml", "w") as f:
             yaml.dump(settings, f)
 
-        settings_window.hide()
+        self.settings_window.hide()
 
         Loader.load_settings()
 
-    def about_clicked(self, button):
-        self.about_dialog.run()
+    def on_about_clicked(self, button):
+        about = self.about_dialog
+        about.set_transient_for(self.widget)
+        about.run()
+
+    def on_aboutdialog_response(self, *args):
+        self.about_dialog.hide()
+
+    def __getattr__(self, attribute):
+        """ Allow direct use of window widget. """
+        widget = self.builder.get_object(attribute)
+        if widget is None:
+            raise AttributeError('Widget \'%s\' not found' % attribute)
+        self.__dict__[attribute] = widget  # cache result
+        return widget
 
 
+window = None
 
-builder = Gtk.Builder()
-builder.add_from_file("../data/cd.glade")
 
-output = builder.get_object("output_entry")
-filename_label = builder.get_object("label1")
-progressbar = builder.get_object("progressbar")
-format_chooser = builder.get_object("format_chooser")
-settings_window = builder.get_object("settings_window")
-auto_detect = builder.get_object("auto_detect")
-eject_standard = builder.get_object("eject_standard")
-standard_format = builder.get_object("standard_format")
-standard_output_entry = builder.get_object("standard_output_entry")
-copyButton = builder.get_object("copy_button")
-directory_error = builder.get_object("dir_win")
-directory_create = builder.get_object("directory_create")
-album_create = builder.get_object("album_create")
-metadata_win = builder.get_object("metadata_window")
-tree_view = builder.get_object("tree_view")
-scrolled = builder.get_object("scrolled")
-artist_entry = builder.get_object("artist_entry")
-album_entry = builder.get_object("album_entry")
-player_button = builder.get_object("player_button")
-volume = builder.get_object("volume")
-slider = builder.get_object("slider")
-play_image = builder.get_object("play_image")
-pause_image = builder.get_object("pause_image")
-
-metadata_view = MetadataTreeview()
-
-builder.connect_signals(Handler())
-
-window = builder.get_object("main_window")
-window.connect("destroy", Gtk.main_quit)
-load = Loader()
-load.load_formats(formats)
-load.load_settings()
-window.show_all()
-Gtk.main()
+def main(builder):
+    global window
+    window = RipperWindow(builder)
+    load = Loader()
+    load.load_formats(formats)
+    load.load_settings()
+    Gtk.main()
