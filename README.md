@@ -1,16 +1,11 @@
 # FFRipper
 
-FFRipper is a fast and easy to use CD-ripper written in Python 3. It is using ffmpeg for the conversion process.
+![FFRipper](data/ffripper01.png)
 
+A fast, powerful and simple to use Audio-CD ripper for Linux supporting 30+ output formats and tagging your CD automatically
 
-## Dependencies
- * ffmpeg
- * python3-gi
- * musicbrainzngs
- * pyyaml
- * discid
- 
-Install them by running following commands:
+## In development...
 
-    sudo apt install python3-gi ffmpeg
-    pip install musicbraizngs pyyaml discid
+FFRipper is in development right now.
+
+**Release Date:** March 2021
