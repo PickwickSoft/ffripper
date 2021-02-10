@@ -136,6 +136,7 @@ class RipperWindow(GladeWindow):
         self.cover_art = False
         self.disc_tracks = None
         self.create_treeview()
+        self.set_treeview_content()
 
         self.widget = builder.get_object('main_window')
         self.player = Player(self.refresh_button)
@@ -147,6 +148,33 @@ class RipperWindow(GladeWindow):
         self.widget.show_all()
 
     def create_treeview(self):
+        # Toggle Buttons
+        renderer_toggle = Gtk.CellRendererToggle()
+        renderer_toggle.connect("toggled", self.on_cell_toggled)
+        column_toggle = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
+        self.tree_view.append_column(column_toggle)
+
+        # Track Numbers
+        renderer_track_number = Gtk.CellRendererText()
+        column_track_number = Gtk.TreeViewColumn("Nr.", renderer_track_number, text=1)
+        self.tree_view.append_column(column_track_number)
+        renderer_track_number.connect("edited", self.text_edited)
+
+        # Audio Titles
+        renderer_title = Gtk.CellRendererText()
+        renderer_title.set_property("editable", True)
+        column_title = Gtk.TreeViewColumn("Title", renderer_title, text=2)
+        self.tree_view.append_column(column_title)
+        renderer_title.connect("edited", self.title_text_edited)
+
+        # Audio Artists
+        renderer_artist = Gtk.CellRendererText()
+        renderer_artist.set_property("editable", True)
+        column_artist = Gtk.TreeViewColumn("Artist", renderer_artist, text=3)
+        self.tree_view.append_column(column_artist)
+        renderer_artist.connect("edited", self.artist_text_edited)
+
+    def set_treeview_content(self):
         try:
             self.metadata = Metadata()
         except RipperError as error:
@@ -180,31 +208,6 @@ class RipperWindow(GladeWindow):
 
         self.tree_view.set_model(self.list_store)
 
-        # Toggle Buttons
-        renderer_toggle = Gtk.CellRendererToggle()
-        renderer_toggle.connect("toggled", self.on_cell_toggled)
-        column_toggle = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
-        self.tree_view.append_column(column_toggle)
-
-        # Track Numbers
-        renderer_track_number = Gtk.CellRendererText()
-        column_track_number = Gtk.TreeViewColumn("Nr.", renderer_track_number, text=1)
-        self.tree_view.append_column(column_track_number)
-        renderer_track_number.connect("edited", self.text_edited)
-
-        # Audio Titles
-        renderer_title = Gtk.CellRendererText()
-        renderer_title.set_property("editable", True)
-        column_title = Gtk.TreeViewColumn("Title", renderer_title, text=2)
-        self.tree_view.append_column(column_title)
-        renderer_title.connect("edited", self.title_text_edited)
-
-        # Audio Artists
-        renderer_artist = Gtk.CellRendererText()
-        renderer_artist.set_property("editable", True)
-        column_artist = Gtk.TreeViewColumn("Artist", renderer_artist, text=3)
-        self.tree_view.append_column(column_artist)
-        renderer_artist.connect("edited", self.artist_text_edited)
 
     def text_edited(self, widget, path, text):
         self.list_store[path][1] = text
@@ -220,16 +223,6 @@ class RipperWindow(GladeWindow):
 
     def return_info(self, tracks):
         return CDInfo(self.album_entry.get_text(), self.artist_entry.get_text(), tracks, None)
-
-    def copy_clicked(self):
-        title_numbers = os.listdir(local_mount_point)
-        tracks = []
-        for i in range(len(self.list_store)):
-            if self.list_store[i][0]:
-                self.tracks_2_copy.append(title_numbers[i])
-                tracks.append(TrackInfo(self.list_store[i][2], None, None, self.list_store[i][3]))
-        self.copy_metadata = self.return_info(tracks)
-        self.rip()
 
     def execute_copy(self):
         global is_running
@@ -247,7 +240,7 @@ class RipperWindow(GladeWindow):
         except RipperError as error:
             print("An Error has occurred: ", error.reason.to_string())
             GLib.idle_add(Dialog(error.reason.to_string(), error.text).error_dialog)
-        self.t = Thread(target=self.execute_copy, args=())
+        self.thread = Thread(target=self.execute_copy, args=())
         if window.eject_standard.get_active() == 1:
             os.system("eject")
         GLib.idle_add(self.update_ui, "Rip", 0, "")
@@ -261,26 +254,23 @@ class RipperWindow(GladeWindow):
         window.progressbar.set_fraction(fraction)
 
     def rip(self):
-        if os.path.isdir(local_mount_point):
-            if window.format_chooser.get_active_text() != "":
-                path = window.output_entry.get_text()
-                if os.path.isdir(path):
-                    self.thread.start()
-                    window.copy_button.set_label("Cancel")
-                    return
-                else:
-                    window.directory_error.format_secondary_text(path + "\n")
-                    window.directory_error.run()
-        else:
-            print("No Device found")
-            Dialog("No Disc Found", "Please insert a disc").error_dialog()
+        if self.is_disc() and window.format_chooser.get_active_text() != "":
+            path = window.output_entry.get_text()
+            if os.path.isdir(path):
+                self.thread.start()
+                window.copy_button.set_label("Cancel")
+                return
+            else:
+                window.directory_error.format_secondary_text(path + "\n")
+                window.directory_error.run()
+
 
     def kill_process(self):
         self.copy.stop_copy()
-        self.t.join()
+        self.thread.join()
         window.copy_button.set_label("Rip")
         window.progressbar.set_fraction(0)
-        self.t = Thread(target=self.execute_copy, args=())
+        self.thread = Thread(target=self.execute_copy, args=())
 
     @staticmethod
     def image_menu(widget, event):
@@ -293,22 +283,25 @@ class RipperWindow(GladeWindow):
 
     def on_copy_button_clicked(self, button):
         global is_running
-        if os.path.isdir(local_mount_point):
-            if self.format_chooser.get_active_text() != "":
-                if os.path.isdir(window.output_entry.get_text()):
-                    if not is_running:
-                        is_running = True
-                        self.copy_clicked()
-                    else:
-                        self.kill_process()
-                        is_running = False
-
+        if self.is_disc() and self.format_chooser.get_active_text() != "":
+            if os.path.isdir(window.output_entry.get_text()):
+                if not is_running:
+                    is_running = True
+                    title_numbers = os.listdir(local_mount_point)
+                    tracks = []
+                    for i in range(len(self.list_store)):
+                        if self.list_store[i][0]:
+                            self.tracks_2_copy.append(title_numbers[i])
+                            tracks.append(TrackInfo(self.list_store[i][2], None, None, self.list_store[i][3]))
+                    self.copy_metadata = self.return_info(tracks)
+                    self.rip()
                 else:
-                    self.directory_error.format_secondary_text(window.output_entry.get_text() + "\n")
-                    self.directory_error.run()
-        else:
-            print("No Device found")
-            Dialog("No Disc Found", "Please insert a disc").error_dialog()
+                    self.kill_process()
+                    is_running = False
+
+            else:
+                self.directory_error.format_secondary_text(window.output_entry.get_text() + "\n")
+                self.directory_error.run()
 
     def on_search_button3_clicked(self, button):
         ui_objects = UiObjects()
@@ -379,7 +372,7 @@ class RipperWindow(GladeWindow):
         self.settings_window.hide()
 
     def on_refresh_button_clicked(self, button):
-        self.create_treeview()
+        self.set_treeview_content()
 
     @staticmethod
     def on_eject_button_clicked(button):
@@ -428,6 +421,15 @@ class RipperWindow(GladeWindow):
             raise AttributeError('Widget \'%s\' not found' % attribute)
         self.__dict__[attribute] = widget  # cache result
         return widget
+
+    @staticmethod
+    def is_disc():
+        if os.path.isdir(local_mount_point):
+            return True
+        print("No Device found")
+        Dialog("No Disc Found", "Please insert a disc").error_dialog()
+        return False
+
 
 
 window = None
