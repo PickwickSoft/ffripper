@@ -22,8 +22,8 @@
 A fast, powerful and simple-to-use graphical CD ripper
 """
 
-__major__ = 1
-__minor__ = 0
+__major__ = 0
+__minor__ = 1
 __release__ = 0
 __prerelease__ = ""  # alpha, beta, rc etc.
 
