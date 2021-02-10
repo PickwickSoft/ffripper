@@ -2,5 +2,5 @@ albumdirectory: false
 always_eject: true
 artistdirectory: false
 autodetect: true
-outputFolder: 
+outputFolder: /home
 standardFormat: 
