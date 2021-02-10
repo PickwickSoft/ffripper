@@ -137,18 +137,10 @@ class Player:
             raise Exception("Couldn't fetch current song position to update slider")
         return position
 
-
-if __name__ == "__main__":
-    def handle():
-        """Simple test handler function ;)"""
-        print("Handler called!")
-    player = Player(handle)
-    player.set_file("/home/stefan/Musik/TestFolder/Mica țiganiadă.ogg")
-    player.play()
-    input(":: ")
-    print(player.get_duration())
-    print(player.get_position())
-    player.pause()
-    input("::")
-    player.play()
-    input("::")
+    def seek_simple(self, *args):
+        """
+        Changes the playing location. Same Arguments as for Gst.PlayBin required.
+        :param args:
+        :return:
+        """
+        self._player.seek_simple(*args)
