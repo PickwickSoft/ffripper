@@ -19,7 +19,7 @@
 import ffripper
 from setuptools import setup
 
-data_files = []
+data_files = [('share/applications/', ['data/ffripper.desktop'])]
 
 setup(
     name=ffripper.__name__,
@@ -34,4 +34,5 @@ setup(
     platforms=ffripper.__platforms__,
     url=ffripper.__url__,
     download_url=ffripper.__download_url__,
+    keywords = ['rip', 'file format', 'audio', 'ffmpeg', 'cd']
 )
