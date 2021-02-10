@@ -1,6 +1,6 @@
 albumdirectory: false
-always_eject: false
+always_eject: true
 artistdirectory: false
 autodetect: true
-outputFolder: /home/stefan/Musik
-standardFormat: ogg
+outputFolder: 
+standardFormat: 
