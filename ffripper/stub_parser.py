@@ -62,7 +62,7 @@ class CdStubParser(CdInfoParser):
             TrackInfo(
                 self.dict['cdstub']["track-list"][i]["title"],
                 self.dict['cdstub']["track-list"][i]["length"],
-                None,
+                "",
                 self.artist,
             )
             for i in range(len(self.dict['cdstub']["track-list"]))

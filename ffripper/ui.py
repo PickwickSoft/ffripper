@@ -127,15 +127,19 @@ class RipperWindow(GladeWindow):
     def __init__(self, builder):
         GladeWindow.__init__(self, builder)
 
-        self.list_store = Gtk.ListStore(bool, str, str, str)
+        self.list_store = Gtk.ListStore(bool, str, str, str, str)
         self.tracks_2_copy = []
         self.copy_metadata = None
         self.copy = None
-        self.metadata = None
+        try:
+            self.metadata = Metadata()
+        except RipperError as error:
+            Dialog(error.reason, error.text).error_dialog()
         self.thread = Thread(target=self.execute_copy, args=())
         self.cover_art = False
         self.disc_tracks = None
         self.create_treeview()
+        self.set_cover_image()
         self.set_treeview_content()
 
         self.widget = builder.get_object('main_window')
@@ -174,16 +178,20 @@ class RipperWindow(GladeWindow):
         self.tree_view.append_column(column_artist)
         renderer_artist.connect("edited", self.artist_text_edited)
 
-    def set_treeview_content(self):
-        try:
-            self.metadata = Metadata()
-        except RipperError as error:
-            Dialog(error.reason, error.text).error_dialog()
+        # Year
+        renderer_year = Gtk.CellRendererText()
+        renderer_year.set_property("editable", True)
+        year_column = Gtk.TreeViewColumn("Year", renderer_year, text=4)
+        self.tree_view.append_column(year_column)
+        renderer_year.connect("edited", self.year_edited)
+
+    def set_cover_image(self):
         self.cover_image.connect_object("event", self.image_menu, ImageContextMenu())
         if (self.metadata.get_cover() != "") and (self.metadata.get_cover() is not None):
             self.cover_art = True
             self.cover_image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
 
+    def set_treeview_content(self):
         # Tracks default
         tracks = None
         try:
@@ -201,13 +209,13 @@ class RipperWindow(GladeWindow):
             tracks = self.metadata.get_tracks()
         try:
             for i in range(len(tracks)):
-                self.list_store.append([False, str(i + 1), tracks[i].get_name(), tracks[i].get_artist()])
+                self.list_store.append([False, str(i + 1), tracks[i].get_name(),
+                                        tracks[i].get_artist(), tracks[i].get_year()])
         except TypeError:
             for j in range(len(self.disc_tracks)):
-                self.list_store.append([False, str(j + 1), self.disc_tracks[j], ""])
+                self.list_store.append([False, str(j + 1), self.disc_tracks[j], "", ""])
 
         self.tree_view.set_model(self.list_store)
-
 
     def text_edited(self, widget, path, text):
         self.list_store[path][1] = text
@@ -220,6 +228,9 @@ class RipperWindow(GladeWindow):
 
     def artist_text_edited(self, widget, path, text):
         self.list_store[path][3] = text
+
+    def year_edited(self, widget, path, text):
+        self.list_store[path][4] = text
 
     def return_info(self, tracks):
         return CDInfo(self.album_entry.get_text(), self.artist_entry.get_text(), tracks, None)
@@ -241,35 +252,33 @@ class RipperWindow(GladeWindow):
             print("An Error has occurred: ", error.reason.to_string())
             GLib.idle_add(Dialog(error.reason.to_string(), error.text).error_dialog)
         self.thread = Thread(target=self.execute_copy, args=())
-        if window.eject_standard.get_active() == 1:
+        if self.eject_standard.get_active() == 1:
             os.system("eject")
         GLib.idle_add(self.update_ui, "Rip", 0, "")
         is_running = False
 
-    @staticmethod
-    def update_ui(copy_button_title, fraction, filename_label_text):
+    def update_ui(self, copy_button_title, fraction, filename_label_text):
         # Dialog.finished_dialog()
         Dialog.notify()
-        window.copy_button.set_label(copy_button_title)
-        window.progressbar.set_fraction(fraction)
+        self.copy_button.set_label(copy_button_title)
+        self.progressbar.set_fraction(fraction)
 
     def rip(self):
-        if self.is_disc() and window.format_chooser.get_active_text() != "":
-            path = window.output_entry.get_text()
+        if self.is_disc() and self.format_chooser.get_active_text() != "":
+            path = self.output_entry.get_text()
             if os.path.isdir(path):
                 self.thread.start()
-                window.copy_button.set_label("Cancel")
+                self.copy_button.set_label("Cancel")
                 return
             else:
-                window.directory_error.format_secondary_text(path + "\n")
-                window.directory_error.run()
-
+                self.directory_error.format_secondary_text(path + "\n")
+                self.directory_error.run()
 
     def kill_process(self):
         self.copy.stop_copy()
         self.thread.join()
-        window.copy_button.set_label("Rip")
-        window.progressbar.set_fraction(0)
+        self.copy_button.set_label("Rip")
+        self.progressbar.set_fraction(0)
         self.thread = Thread(target=self.execute_copy, args=())
 
     @staticmethod
@@ -284,7 +293,7 @@ class RipperWindow(GladeWindow):
     def on_copy_button_clicked(self, button):
         global is_running
         if self.is_disc() and self.format_chooser.get_active_text() != "":
-            if os.path.isdir(window.output_entry.get_text()):
+            if os.path.isdir(self.output_entry.get_text()):
                 if not is_running:
                     is_running = True
                     title_numbers = os.listdir(local_mount_point)
@@ -292,7 +301,8 @@ class RipperWindow(GladeWindow):
                     for i in range(len(self.list_store)):
                         if self.list_store[i][0]:
                             self.tracks_2_copy.append(title_numbers[i])
-                            tracks.append(TrackInfo(self.list_store[i][2], None, None, self.list_store[i][3]))
+                            tracks.append(TrackInfo(self.list_store[i][2], None,
+                                                    self.list_store[i][4], self.list_store[i][3]))
                     self.copy_metadata = self.return_info(tracks)
                     self.rip()
                 else:
@@ -300,7 +310,7 @@ class RipperWindow(GladeWindow):
                     is_running = False
 
             else:
-                self.directory_error.format_secondary_text(window.output_entry.get_text() + "\n")
+                self.directory_error.format_secondary_text(self.output_entry.get_text() + "\n")
                 self.directory_error.run()
 
     def on_search_button3_clicked(self, button):
@@ -336,8 +346,8 @@ class RipperWindow(GladeWindow):
 
     def on_slider_seek(self, argument):
         seek_time_secs = self.slider.get_value()
-        self.player._player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
-                                        seek_time_secs * Gst.SECOND)
+        self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
+                                seek_time_secs * Gst.SECOND)
 
     def on_volume_changed(self, button, volume):
         self.player.set_volume(volume)
@@ -429,7 +439,6 @@ class RipperWindow(GladeWindow):
         print("No Device found")
         Dialog("No Disc Found", "Please insert a disc").error_dialog()
         return False
-
 
 
 window = None

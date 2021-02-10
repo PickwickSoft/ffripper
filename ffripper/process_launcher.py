@@ -90,13 +90,14 @@ class CopyProcessor:
             )
 
             rip_command = "ffmpeg -y -i \"{0}/{1}\" {2} -metadata title=\"{3}\" " \
-                          "-metadata artist=\"{4}\" -metadata album=\"{5}\" \"{6}/{7}\"".format(
+                          "-metadata artist=\"{4}\" -metadata album=\"{5}\" -metadata date=\"{6}\" \"{7}/{8}\"".format(
                                                                                      self.input_location,
                                                                                      self.audio_files[i],
                                                                                      cover_art_stream,
                                                                                      self.track_info[i].get_name(),
                                                                                      self.track_info[i].get_artist(),
                                                                                      self.meta.get_album(),
+                                                                                     self.track_info[i].get_year(),
                                                                                      self.output_location,
                                                                                      "{0}.{1}".format(
                                                                                          self.track_info[i].get_name(),

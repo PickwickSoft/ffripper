@@ -88,7 +88,8 @@ class CdDiscParser(CdInfoParser):
                                               ['recording']["title"],
                                               self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'][j][
                                                   'length'],
-                                              None, self.dict['disc']['release-list'][0]['medium-list'][i]['track-list']
+                                              self.dict['disc']['release-list'][0]['date'],
+                                              self.dict['disc']['release-list'][0]['medium-list'][i]['track-list']
                                               [j]['recording']['artist-credit'][0]['artist']['name']))
         except IndexError:
             for i in range(len(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'])):
@@ -96,7 +97,7 @@ class CdDiscParser(CdInfoParser):
                     TrackInfo(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'][i]['recording'][
                                   "title"],
                               self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'][i]['length'],
-                              None, None))
+                              self.dict['disc']['release-list'][0]['date'], None))
         return tracks
 
     def parse_for_cover(self):
