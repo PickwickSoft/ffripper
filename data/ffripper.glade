@@ -7,9 +7,9 @@
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">FFRipper</property>
-    <property name="copyright" translatable="yes">© 2020 Stefan Garlonta &lt;stefan.garlonta@gmail.com&gt;</property>
+    <property name="copyright" translatable="yes">© 2020-2021 Stefan Garlonta &lt;stefan.garlonta@gmail.com&gt;</property>
     <property name="comments" translatable="yes">Fast and simple to use audio-cd ripper</property>
-    <property name="website">github.com/ThePickwickClub/ffripper/</property>
+    <property name="website">https://thepickwickclub.github.io/ffripper/</property>
     <property name="authors">Stefan Garlonta</property>
     <property name="logo">icons8-burn-cd-52.png</property>
     <property name="license_type">gpl-3-0</property>
@@ -1229,5 +1229,12 @@ audio-volume-medium-symbolic</property>
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkCheckButton" id="toggle_all_check_button">
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="receives_default">False</property>
+    <property name="draw_indicator">True</property>
+    <signal name="toggled" handler="on_toggle_all" swapped="no"/>
   </object>
 </interface>

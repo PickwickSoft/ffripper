@@ -138,6 +138,11 @@ class RipperWindow(GladeWindow):
         self.thread = Thread(target=self.execute_copy, args=())
         self.cover_art = False
         self.disc_tracks = None
+        self.column_toggle = None
+        # self.toggle_all_check_button = Gtk.CheckButton()
+        # self.toggle_all_check_button.set_visible(True)
+        # self.toggle_all_check_button.set_active(True)
+        # self.toggle_all_check_button.connect("toggled", self.toggle_all)
         self.create_treeview()
         self.set_cover_image()
         self.set_treeview_content()
@@ -155,8 +160,8 @@ class RipperWindow(GladeWindow):
         # Toggle Buttons
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", self.on_cell_toggled)
-        column_toggle = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
-        self.tree_view.append_column(column_toggle)
+        self.column_toggle = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
+        self.tree_view.append_column(self.column_toggle)
 
         # Track Numbers
         renderer_track_number = Gtk.CellRendererText()
@@ -184,6 +189,12 @@ class RipperWindow(GladeWindow):
         year_column = Gtk.TreeViewColumn("Year", renderer_year, text=4)
         self.tree_view.append_column(year_column)
         renderer_year.connect("edited", self.year_edited)
+
+        self.column_toggle.set_clickable(True)
+        self.column_toggle.set_widget(self.toggle_all_check_button)
+
+    def on_toggle_all(self):
+        print("toogle...")
 
     def set_cover_image(self):
         self.cover_image.connect_object("event", self.image_menu, ImageContextMenu())

@@ -102,15 +102,6 @@ class CdDiscParser(CdInfoParser):
 
     def parse_for_cover(self):
         if self.dict['disc']['release-list'][0]['cover-art-archive']['artwork'] == 'true':
-            print(self._mb_id)
-            """
-            cover_list = musicbrainzngs.get_image_list(self._mb_id)
-            for i in range(len(cover_list['images'])):
-                if cover_list['images'][i]['comment'].find(self._album) != -1:
-                    if cover_list['images'][i]['comment'].find('Front') != -1:
-                        cover = musicbrainzngs.get_image(self._mb_id, i)
-            """
             return musicbrainzngs.get_image(self._mb_id, 'front')
-        else:
-            print('no cover!')
-            return ""
+        print('no cover!')
+        return ""

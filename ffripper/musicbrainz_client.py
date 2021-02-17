@@ -62,11 +62,6 @@ class MusicbrainzClient:
         except musicbrainzngs.musicbrainz.NetworkError:
             raise RipperError(Reason.NETWORKERROR, "No Internet Connection")
         except:
-            # raise RipperError(Reason.MUSICBRAINZERROR, "An Error occurred while receiving Metadata from Musicbrainz")
             result = None
             return result
-        if result is None:
-            # raise RipperError(Reason.METADATANOTFOUNDERROR, "No Metadata available")
-            pass
-
         return result
