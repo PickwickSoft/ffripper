@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-This file creates the ui and runs ffripper
-"""
+
 #   ffripper-1.0 - Audio-CD ripper.
 #   Copyright 2020-2021 Stefan Garlonta
 #
@@ -193,8 +191,9 @@ class RipperWindow(GladeWindow):
         self.column_toggle.set_clickable(True)
         self.column_toggle.set_widget(self.toggle_all_check_button)
 
-    def on_toggle_all(self):
-        print("toogle...")
+    @staticmethod
+    def on_toggle_all():
+        pass
 
     def set_cover_image(self):
         self.cover_image.connect_object("event", self.image_menu, ImageContextMenu())
@@ -208,7 +207,7 @@ class RipperWindow(GladeWindow):
         try:
             self.disc_tracks = os.listdir(local_mount_point)
         except FileNotFoundError:
-            Dialog("No Disc Found", "Please insert a disc and reload Metadata").error_dialog()
+            self.nodiscdialog.show_all()
             return
 
         # Write to Entries
@@ -298,6 +297,10 @@ class RipperWindow(GladeWindow):
             # make widget popup
             widget.popup(None, None, None, event.button, event.time)
 
+    @staticmethod
+    def on_nodiscdialog_response(*args):
+        Gtk.main_quit()
+
     def on_ok_button_clicked(self, button):
         self.directory_error.hide()
 
@@ -362,6 +365,12 @@ class RipperWindow(GladeWindow):
 
     def on_volume_changed(self, button, volume):
         self.player.set_volume(volume)
+
+    def on_retry_clicked(self, *args):
+        self.nodiscdialog.hide()
+        self.update_metadata()
+        self.set_cover_image()
+        self.set_treeview_content()
 
     def refresh_button(self, player):
         self.player_button.set_image(self.play_image)
@@ -434,6 +443,9 @@ class RipperWindow(GladeWindow):
 
     def on_aboutdialog_response(self, *args):
         self.about_dialog.hide()
+
+    def update_metadata(self):
+        self.metadata = Metadata()
 
     def __getattr__(self, attribute):
         """ Allow direct use of window widget. """
