@@ -16,8 +16,8 @@
 #   USA
 #
 
+from concurrent.futures import ThreadPoolExecutor
 from subprocess import Popen
-from threading import Thread
 from typing import Callable
 
 
@@ -27,8 +27,8 @@ class PopenFinishedCallback:
     def __init__(self, subprocess: Popen, callback: Callable) -> None:
         self._proc = subprocess
         self._callback = callback
-        self._thread = Thread(target=self._run)
-        self._thread.start()
+        with ThreadPoolExecutor() as executor:
+            executor.submit(self._run)
 
     def _run(self):
         self._proc.wait()

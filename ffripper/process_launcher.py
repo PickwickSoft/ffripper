@@ -36,6 +36,7 @@ import subprocess
 import time
 import shlex
 from ffripper.errors import Reason, RipperError
+from ffripper.extended_subprocess import PopenFinishedCallback
 
 
 class CopyProcessorListener(abc.ABC):
@@ -50,11 +51,11 @@ class CopyProcessorListener(abc.ABC):
 class CopyProcessor:
 
     def __init__(self, input_location, output_location, file_format, listener, metadata, audio_files, cover):
+        self.finished_processes = 0
         self.input_location = input_location
         self.output_location = output_location
         self.format = file_format
-        self.audio_files = audio_files
-        self.audio_files = self.file_filter(self.audio_files)
+        self.audio_files = self.filter_files_by_extension(audio_files, '.wav')
         self.should_continue = True
         self.listener = listener
         self.meta = metadata
@@ -70,15 +71,14 @@ class CopyProcessor:
             print("Process %d Closed" % i)
 
     @staticmethod
-    def file_filter(listed_dir):
+    def filter_files_by_extension(listed_dir, extension):
         return [
             listed_dir[i]
             for i in range(len(listed_dir))
-            if listed_dir[i].endswith('.wav')
+            if listed_dir[i].endswith(extension)
         ]
 
     def run(self):
-        files = len(self.audio_files)
         start_time = []
         for i in range(len(self.audio_files)):
             if not self.should_continue:
@@ -89,27 +89,32 @@ class CopyProcessor:
                 "" if self.cover is None else "-i \"{0}\"".format(self.cover)
             )
 
-            rip_command = "ffmpeg -y -i \"{0}/{1}\" {2} -metadata title=\"{3}\" " \
-                          "-metadata artist=\"{4}\" -metadata album=\"{5}\" -metadata date=\"{6}\" \"{7}/{8}\"".format(
-                                                                                     self.input_location,
-                                                                                     self.audio_files[i],
-                                                                                     cover_art_stream,
-                                                                                     self.track_info[i].get_name(),
-                                                                                     self.track_info[i].get_artist(),
-                                                                                     self.meta.get_album(),
-                                                                                     self.track_info[i].get_year(),
-                                                                                     self.output_location,
-                                                                                     "{0}.{1}".format(
-                                                                                         self.track_info[i].get_name(),
-                                                                                         self.format))
+            rip_command = """ffmpeg -y -threads 0 -i \"{0}/{1}\" {2} -metadata title=\"{3}\"  -metadata artist=\"{4}\" 
+                            -metadata album=\"{5}\" -metadata date=\"{6}\" \"{7}/{8}\"""".format(
+                self.input_location,
+                self.audio_files[i],
+                cover_art_stream,
+                self.track_info[i].get_name(),
+                self.track_info[i].get_artist(),
+                self.meta.get_album(),
+                self.track_info[i].get_year(),
+                self.output_location,
+                "{0}.{1}".format(
+                    self.track_info[i].get_name(),
+                    self.format))
             try:
                 print(rip_command)
                 ffmpeg = subprocess.Popen(shlex.split(rip_command), stderr=subprocess.STDOUT)
             except:
                 raise RipperError(Reason.FFMPEGERROR, "An Error occurred while running FFMPEG")
             self.processes.append(ffmpeg)
+        self.wait_for_finish()
 
-        for j in range(len(self.processes)):
-            self.processes[j].wait()
-            print("Process ", j, " finished after: ", time.time() - start_time[j])
-            self.listener.on_copy_item(files)
+    def wait_for_finish(self):
+        while self.finished_processes != len(self.audio_files):
+            for i in self.processes:
+                PopenFinishedCallback(i, self.on_finished)
+
+    def on_finished(self):
+        self.finished_processes += 1
+        self.listener.on_copy_item(len(self.audio_files))

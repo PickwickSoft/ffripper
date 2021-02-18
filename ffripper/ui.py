@@ -47,7 +47,7 @@ from ffripper.ui_elements import UiObjects, Dialog, ImageContextMenu, GladeWindo
 from ffripper.image import Image
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gst, GdkPixbuf, Gdk
+from gi.repository import Gtk, GLib, Gst, Gdk
 
 formats = ["mp2", "mp3",
            "wav", "ogg",
@@ -72,6 +72,8 @@ music_detect = True
 is_running = False
 directory_name, filename = os.path.split(os.path.abspath(__file__))
 os.chdir(directory_name)
+settings = Gtk.Settings.get_default()
+settings.set_property("gtk-application-prefer-dark-theme", True)
 
 
 class Loader:
@@ -219,7 +221,7 @@ class RipperWindow(GladeWindow):
             tracks = self.metadata.get_tracks()
         try:
             for i in range(len(tracks)):
-                self.list_store.append([False, str(i + 1), tracks[i].get_name(),
+                self.list_store.append([True, str(i + 1), tracks[i].get_name(),
                                         tracks[i].get_artist(), tracks[i].get_year()])
         except TypeError:
             for j in range(len(self.disc_tracks)):
@@ -247,9 +249,7 @@ class RipperWindow(GladeWindow):
 
     def execute_copy(self):
         global is_running
-        print("CopyStart")
         info = Preparer().return_all()
-        print(info)
         listener = MyCopyListener()
         cover = None
         if self.cover_art:
@@ -264,14 +264,15 @@ class RipperWindow(GladeWindow):
         self.thread = Thread(target=self.execute_copy, args=())
         if self.eject_standard.get_active() == 1:
             os.system("eject")
-        GLib.idle_add(self.update_ui, "Rip", 0, "")
+        GLib.idle_add(self.update_ui, "Rip", 0)
         is_running = False
 
-    def update_ui(self, copy_button_title, fraction, filename_label_text):
+    def update_ui(self, copy_button_title, fraction):
         # Dialog.finished_dialog()
         Dialog.notify()
         self.copy_button.set_label(copy_button_title)
         self.progressbar.set_fraction(fraction)
+        self.tracks_2_copy = []
 
     def rip(self):
         if self.is_disc() and self.format_chooser.get_active_text() != "":
