@@ -1,0 +1,25 @@
+name: ffripper
+version: '0.1'
+summary: FFRipper
+description: |
+  A fast, powerful and simple to use Audio-CD ripper.
+confinement: devmode
+base: core18
+license: GPL-3.0+
+
+parts:
+  ffripper:
+    plugin: python
+    python-version: python3
+    source: https://github.com/ThePickwickClub/ffripper.git
+    stage-packages:
+      - python3-gi
+      - python3-discid
+      - python3-musicbrainzngs
+      - ffmpeg
+
+apps:
+  ffripper:
+    command: bin/ffripper
+    extensions: [gnome-3-28]
+    desktop: usr/local/share/applications/ffripper.desktop
