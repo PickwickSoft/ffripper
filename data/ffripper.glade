@@ -1095,6 +1095,7 @@ audio-volume-medium-symbolic</property>
                 <property name="margin_right">5</property>
                 <property name="margin_top">5</property>
                 <property name="margin_bottom">5</property>
+                <property name="editable">False</property>
               </object>
               <packing>
                 <property name="expand">True</property>

@@ -37,6 +37,7 @@ import os
 import gi
 import yaml
 from threading import Thread
+from rich.traceback import install
 from ffripper.process_launcher import CopyProcessor, CopyProcessorListener
 from ffripper.errors import RipperError
 from ffripper.metadata import Metadata
@@ -45,9 +46,13 @@ from ffripper.track_info import TrackInfo
 from ffripper.player import Player
 from ffripper.ui_elements import UiObjects, Dialog, ImageContextMenu, GladeWindow
 from ffripper.image import Image
+from ffripper.settings import Settings
+from ffripper.logger import logger
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Gst, Gdk
+
+install()
 
 formats = ["mp2", "mp3",
            "wav", "ogg",
@@ -64,7 +69,8 @@ formats = ["mp2", "mp3",
            'm4v', 'mka',
            'mkv', 'mov',
            'mpg', 'vob',
-           'webm']
+           'webm', 'acc',
+           'pcm', 'alac']
 formats.sort()
 entry = 0
 local_mount_point = "/run/user/1000/gvfs/cdda:host=sr0"
@@ -86,17 +92,12 @@ class Loader:
 
     @staticmethod
     def load_settings():
-        with open("../data/settings.yaml") as f:
-            settings = yaml.load(f, Loader=yaml.FullLoader)
-        autodetect = settings["autodetect"]
-        always_eject = settings['always_eject']
-        output_folder = settings['outputFolder']
-        format_standard = settings['standardFormat']
-        if output_folder != '':
-            window.output_entry.set_text(output_folder)
-        if format_standard is not None:
+        settings = Settings("../data/settings.yaml")
+        if settings.get_output_folder() != '':
+            window.output_entry.set_text(settings.get_output_folder())
+        if settings.get_default_format() is not None:
             for i in range(len(formats) - 1):
-                if format_standard == formats[i]:
+                if settings.get_default_format() == formats[i]:
                     window.format_chooser.set_active(i)
 
 
@@ -139,10 +140,6 @@ class RipperWindow(GladeWindow):
         self.cover_art = False
         self.disc_tracks = None
         self.column_toggle = None
-        # self.toggle_all_check_button = Gtk.CheckButton()
-        # self.toggle_all_check_button.set_visible(True)
-        # self.toggle_all_check_button.set_active(True)
-        # self.toggle_all_check_button.connect("toggled", self.toggle_all)
         self.create_treeview()
         self.set_cover_image()
         self.set_treeview_content()
@@ -156,42 +153,57 @@ class RipperWindow(GladeWindow):
         self.widget.connect("destroy", Gtk.main_quit)
         self.widget.show_all()
 
+    def __getattr__(self, attribute):
+        """ Allow direct use of window widget. """
+        widget = self.builder.get_object(attribute)
+        if widget is None:
+            raise AttributeError('Widget \'%s\' not found' % attribute)
+        self.__dict__[attribute] = widget  # cache result
+        return widget
+
     def create_treeview(self):
-        # Toggle Buttons
+        self.__create_toggle_column()
+        self.__create_track_number_column()
+        self.__create_title_column()
+        self.__create_artist_column()
+        self.__create_year_column()
+        self.column_toggle.set_clickable(True)
+        self.column_toggle.set_widget(self.toggle_all_check_button)
+
+
+    def __create_toggle_column(self):
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", self.on_cell_toggled)
         self.column_toggle = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
         self.tree_view.append_column(self.column_toggle)
 
-        # Track Numbers
+    def __create_track_number_column(self):
         renderer_track_number = Gtk.CellRendererText()
         column_track_number = Gtk.TreeViewColumn("Nr.", renderer_track_number, text=1)
         self.tree_view.append_column(column_track_number)
         renderer_track_number.connect("edited", self.text_edited)
 
-        # Audio Titles
+    def __create_title_column(self):
         renderer_title = Gtk.CellRendererText()
         renderer_title.set_property("editable", True)
         column_title = Gtk.TreeViewColumn("Title", renderer_title, text=2)
         self.tree_view.append_column(column_title)
         renderer_title.connect("edited", self.title_text_edited)
 
-        # Audio Artists
+    def __create_artist_column(self):
         renderer_artist = Gtk.CellRendererText()
         renderer_artist.set_property("editable", True)
         column_artist = Gtk.TreeViewColumn("Artist", renderer_artist, text=3)
         self.tree_view.append_column(column_artist)
         renderer_artist.connect("edited", self.artist_text_edited)
 
-        # Year
+    def __create_year_column(self):
         renderer_year = Gtk.CellRendererText()
         renderer_year.set_property("editable", True)
         year_column = Gtk.TreeViewColumn("Year", renderer_year, text=4)
         self.tree_view.append_column(year_column)
         renderer_year.connect("edited", self.year_edited)
 
-        self.column_toggle.set_clickable(True)
-        self.column_toggle.set_widget(self.toggle_all_check_button)
 
     @staticmethod
     def on_toggle_all():
@@ -410,29 +422,11 @@ class RipperWindow(GladeWindow):
         os.system("eject")
 
     def on_apply_button_clicked(self, button):
-        with open("../data/settings.yaml") as f:
-            settings = yaml.load(f, Loader=yaml.FullLoader)
-
-        settings['autodetect'] = self.auto_detect.get_active()
-
-        with open("../data/settings.yaml", "w") as f:
-            yaml.dump(settings, f)
-
-        settings['always_eject'] = self.eject_standard.get_active()
-
-        with open("../data/settings.yaml", "w") as f:
-            yaml.dump(settings, f)
-
-        settings['outputFolder'] = self.standard_output_entry.get_text()
-
-        with open("../data/settings.yaml", "w") as f:
-            yaml.dump(settings, f)
-
-        settings['standardFormat'] = self.standard_format.get_active_text()
-
-        with open("../data/settings.yaml", "w") as f:
-            yaml.dump(settings, f)
-
+        settings = Settings("../data/settings.yaml")
+        settings.set_eject(self.eject_standard.get_active())
+        settings.set_output_folder(self.standard_output_entry.get_text())
+        settings.set_default_format(self.standard_format.get_active_text())
+        settings.apply_changes()
         self.settings_window.hide()
 
         Loader.load_settings()
@@ -447,14 +441,6 @@ class RipperWindow(GladeWindow):
 
     def update_metadata(self):
         self.metadata = Metadata()
-
-    def __getattr__(self, attribute):
-        """ Allow direct use of window widget. """
-        widget = self.builder.get_object(attribute)
-        if widget is None:
-            raise AttributeError('Widget \'%s\' not found' % attribute)
-        self.__dict__[attribute] = widget  # cache result
-        return widget
 
     @staticmethod
     def is_disc():
@@ -474,4 +460,5 @@ def main(builder):
     load = Loader()
     load.load_formats(formats)
     load.load_settings()
+    logger.info("Started FFRipper")
     Gtk.main()
