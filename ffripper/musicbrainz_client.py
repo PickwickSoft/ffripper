@@ -35,6 +35,7 @@
 
 import musicbrainzngs
 import discid
+import ffripper
 from ffripper.errors import RipperError, Reason
 
 
@@ -53,15 +54,14 @@ class MusicbrainzClient:
 
     def get_metadata(self):
         self.get_disk_id()
-        musicbrainzngs.set_useragent("ffRipper", "0.1")
+        musicbrainzngs.set_useragent(ffripper.__name__, ffripper.__version__)
         try:
             result = musicbrainzngs.get_releases_by_discid(self.id, includes=["recordings", "artists", "recording-rels",
                                                                               "labels", "artist-rels", "release-rels",
                                                                               "work-rels", "aliases", "artist-credits",
                                                                               "release-groups"])
-        except musicbrainzngs.musicbrainz.NetworkError:
-            raise RipperError(Reason.NETWORKERROR, "No Internet Connection")
-        except:
-            result = None
-            return result
+        except musicbrainzngs.musicbrainz.NetworkError as e:
+            raise RipperError(Reason.NETWORKERROR, "Problem communicating with the MB server") from e
+        except musicbrainzngs.ResponseError:
+            return None
         return result
