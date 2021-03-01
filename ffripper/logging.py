@@ -1,8 +1,11 @@
 import logging
+from rich.logging import RichHandler
 
 logging.basicConfig(
-    filename="test.log",
-    level=logging.DEBUG,
-    format="%(asctime)s:%(levelname)s:%(message)s"
+    level="NOTSET",
+    format="%(asctime)s:%(levelname)s:%(message)s",
+    handlers=[RichHandler()]
     )
-    
+
+logger = logging.getLogger("rich")
+logger.info("Hello, World!")
