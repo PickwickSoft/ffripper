@@ -221,7 +221,7 @@ class RipperWindow(GladeWindow):
         try:
             self.disc_tracks = os.listdir(local_mount_point)
         except FileNotFoundError:
-            self.nodiscdialog.show_all()
+            self.nodiscdialog.run()
             return
 
         # Write to Entries

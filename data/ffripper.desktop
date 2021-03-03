@@ -2,7 +2,7 @@
 Name=FFRipper
 Comment=A fast, powerful and simple to use Audio-CD ripper for Linux supporting 30+ output formats
 Exec=ffripper 
-Icon=/usr/share/pixmaps/ripperX-icon.xpm
+Icon=ffripper.png
 GenericName=CD Ripper
 Terminal=false
 MultipleArgs=false
