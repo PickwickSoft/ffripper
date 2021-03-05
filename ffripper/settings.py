@@ -1,4 +1,5 @@
 import yaml
+from ffripper.theme import Theme
 
 
 class Settings:
@@ -7,6 +8,7 @@ class Settings:
         self.settings_file = settings_file
         with open(settings_file, "r") as self.file:
             self.settings = yaml.load(self.file, Loader=yaml.FullLoader)
+        self.theme = Theme()
 
     def __del__(self):
         self.apply_changes()
@@ -24,6 +26,16 @@ class Settings:
     def apply_changes(self):
         with open(self.settings_file, "w") as file:
             yaml.dump(self.settings, file)
+
+    def set_theme(self, theme: str):
+        if theme.lower() == "light":
+            self.theme.set_light_theme()
+        elif theme.lower() == "dark":
+            self.theme.set_dark_theme()
+        elif theme.lower() == "system":
+            self.theme.set_system_default()
+        else:
+            pass
 
     def get_eject(self) -> bool:
         return self.settings['always_eject']

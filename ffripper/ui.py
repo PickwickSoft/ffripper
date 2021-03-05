@@ -52,7 +52,7 @@ from ffripper.logger import logger
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Gst, Gdk
 
-install()
+# install()
 
 formats = ["mp2", "mp3",
            "wav", "ogg",
@@ -70,16 +70,13 @@ formats = ["mp2", "mp3",
            'mkv', 'mov',
            'mpg', 'vob',
            'webm', 'acc',
-           'pcm', 'alac']
+           'alac']
 formats.sort()
 entry = 0
 local_mount_point = "/run/user/1000/gvfs/cdda:host=sr0"
-music_detect = True
 is_running = False
 directory_name, filename = os.path.split(os.path.abspath(__file__))
 os.chdir(directory_name)
-settings = Gtk.Settings.get_default()
-settings.set_property("gtk-application-prefer-dark-theme", True)
 
 
 class Loader:
@@ -132,6 +129,8 @@ class RipperWindow(GladeWindow):
         self.tracks_2_copy = []
         self.copy_metadata = None
         self.copy = None
+        self.settings = Settings("../data/settings.yaml")
+        self.metadata = None
         try:
             self.metadata = Metadata()
         except RipperError as error:
@@ -211,35 +210,38 @@ class RipperWindow(GladeWindow):
 
     def set_cover_image(self):
         self.cover_image.connect_object("event", self.image_menu, ImageContextMenu())
-        if (self.metadata.get_cover() != "") and (self.metadata.get_cover() is not None):
-            self.cover_art = True
-            self.cover_image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
+        try:
+            if (self.metadata.get_cover() != "") and (self.metadata.get_cover() is not None):
+                self.cover_art = True
+                self.cover_image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
+        except AttributeError:
+            logger.error("Metadataerror")
 
     def set_treeview_content(self):
-        # Tracks default
         tracks = None
+        if self.get_tracks_on_disc():
+            if self.metadata is not None:
+                self.artist_entry.set_text(self.metadata.get_artist())
+                self.album_entry.set_text(self.metadata.get_album())
+
+                tracks = self.metadata.get_tracks()
+            try:
+                for i in range(len(tracks)):
+                    self.list_store.append([True, str(i + 1), tracks[i].get_name(),
+                                            tracks[i].get_artist(), tracks[i].get_year()])
+            except TypeError:
+                for j in range(len(self.disc_tracks)):
+                    self.list_store.append([False, str(j + 1), self.disc_tracks[j], "", ""])
+
+            self.tree_view.set_model(self.list_store)
+
+    def get_tracks_on_disc(self):
         try:
             self.disc_tracks = os.listdir(local_mount_point)
+            return True
         except FileNotFoundError:
             self.nodiscdialog.run()
-            return
-
-        # Write to Entries
-        if self.metadata is not None:
-            self.artist_entry.set_text(self.metadata.get_artist())
-            self.album_entry.set_text(self.metadata.get_album())
-
-            # Metadata append
-            tracks = self.metadata.get_tracks()
-        try:
-            for i in range(len(tracks)):
-                self.list_store.append([True, str(i + 1), tracks[i].get_name(),
-                                        tracks[i].get_artist(), tracks[i].get_year()])
-        except TypeError:
-            for j in range(len(self.disc_tracks)):
-                self.list_store.append([False, str(j + 1), self.disc_tracks[j], "", ""])
-
-        self.tree_view.set_model(self.list_store)
+            return False
 
     def text_edited(self, widget, path, text):
         self.list_store[path][1] = text
@@ -264,9 +266,9 @@ class RipperWindow(GladeWindow):
         info = Preparer().return_all()
         listener = MyCopyListener()
         cover = None
-        if self.cover_art:
-            cover = Image.bytes2png(self.metadata.get_cover(), info[1], "cover")
         try:
+            if self.cover_art:
+                cover = Image.bytes2png(self.metadata.get_cover(), info[1], "cover")
             self.copy = CopyProcessor(info[0], info[1], info[2], listener, self.copy_metadata, self.tracks_2_copy,
                                       cover)
             self.copy.run()
@@ -398,18 +400,12 @@ class RipperWindow(GladeWindow):
 
     def on_setting_button_clicked(self, button):
         self.settings_window.show_all()
-        with open("../data/settings.yaml") as f:
-            settings = yaml.load(f, Loader=yaml.FullLoader)
-            if settings['always_eject']:
-                self.eject_standard.set_active(True)
-            if settings['autodetect']:
-                self.auto_detect.set_active(True)
-            if settings['outputFolder'] != '':
-                self.standard_output_entry.set_text(str(settings['outputFolder']))
-            if settings['standardFormat'] is not None:
-                for i in range(len(formats) - 1):
-                    if settings['standardFormat'] == formats[i]:
-                        self.standard_format.set_active(i)
+        self.eject_standard.set_active(self.settings.get_eject())
+        self.standard_output_entry.set_text(str(self.settings.get_output_folder()))
+        if self.settings.get_default_format() is not None:
+            for i in range(len(formats) - 1):
+                if self.settings.get_default_format() == formats[i]:
+                    self.standard_format.set_active(i)
 
     def on_cancel_button_clicked(self, button):
         self.settings_window.hide()
@@ -422,11 +418,10 @@ class RipperWindow(GladeWindow):
         os.system("eject")
 
     def on_apply_button_clicked(self, button):
-        settings = Settings("../data/settings.yaml")
-        settings.set_eject(self.eject_standard.get_active())
-        settings.set_output_folder(self.standard_output_entry.get_text())
-        settings.set_default_format(self.standard_format.get_active_text())
-        settings.apply_changes()
+        self.settings.set_eject(self.eject_standard.get_active())
+        self.settings.set_output_folder(self.standard_output_entry.get_text())
+        self.settings.set_default_format(self.standard_format.get_active_text())
+        self.settings.apply_changes()
         self.settings_window.hide()
 
         Loader.load_settings()
@@ -438,6 +433,9 @@ class RipperWindow(GladeWindow):
 
     def on_aboutdialog_response(self, *args):
         self.about_dialog.hide()
+
+    def on_theme_changed(self, widget):
+        self.settings.set_theme(widget.get_active_text())
 
     def update_metadata(self):
         self.metadata = Metadata()

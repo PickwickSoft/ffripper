@@ -33,6 +33,7 @@ class Reason(Enum):
     METADATANOTFOUNDERROR = 3
     FFMPEGERROR = 4
     NODISCERROR = 5
+    PERMISIONERROR = 6
 
     def to_string(self):
         if self == Reason.NETWORKERROR:
@@ -45,5 +46,7 @@ class Reason(Enum):
             return "FFMPEG Error"
         elif self == Reason.NODISCERROR:
             return "No Disc Found Error"
+        elif self == Reason.PERMISIONERROR:
+            return "Permission Denied"
         else:
             return "Unknown"

@@ -61,7 +61,7 @@ class MusicbrainzClient:
                                                                               "work-rels", "aliases", "artist-credits",
                                                                               "release-groups"])
         except musicbrainzngs.musicbrainz.NetworkError as e:
-            raise RipperError(Reason.NETWORKERROR, "Problem communicating with the MB server") from e
+            raise RipperError(Reason.NETWORKERROR, "Problem communicating with the MB server")
         except musicbrainzngs.ResponseError:
             return None
         return result

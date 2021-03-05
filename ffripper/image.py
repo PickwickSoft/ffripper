@@ -21,6 +21,7 @@ import gi
 gi.require_version('GdkPixbuf', '2.0')
 from PIL import Image as PilImage
 from gi.repository import GLib, GdkPixbuf
+from ffripper.errors import *
 
 
 class Image:
@@ -61,9 +62,10 @@ class Image:
         :return: the full path to image
         """
         _result_file = output_dir + "/" + filename
-
-        _image = PilImage.open(io.BytesIO(data))
-        _image.save(_result_file + '.png', 'PNG')
-        return _result_file + ".png"
-
+        try:
+            _image = PilImage.open(io.BytesIO(data))
+            _image.save(_result_file + '.png', 'PNG')
+            return _result_file + ".png"
+        except PermissionError as e:
+            raise RipperError(Reason.PERMISIONERROR, "Unable to write to {}".format(output_dir)) from e
 
