@@ -418,7 +418,7 @@ class RipperWindow(GladeWindow):
         self.get_metadata()
 
     def is_disc(self):
-        if os.path.isdir(self.disc.mount_point):
+        if self.disc.is_disc():
             return True
         print("No Device found")
         Dialog("No Disc Found", "Please insert a disc").error_dialog()

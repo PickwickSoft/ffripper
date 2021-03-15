@@ -51,3 +51,6 @@ class Disc:
                 ""
             elif desktop_session == "windowmaker":
                 ""
+
+    def is_disc(self):
+        return bool(os.path.isdir(self.mount_point))
