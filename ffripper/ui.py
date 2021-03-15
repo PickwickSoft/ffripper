@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 #   ffripper-1.0 - Audio-CD ripper.
 #   Copyright 2020-2021 Stefan Garlonta
 #
@@ -35,7 +33,6 @@
 
 import os
 import gi
-import yaml
 from threading import Thread
 from rich.traceback import install
 from ffripper.process_launcher import CopyProcessor, CopyProcessorListener
@@ -44,37 +41,17 @@ from ffripper.metadata import Metadata
 from ffripper.cdrom_info_object import CDInfo
 from ffripper.track_info import TrackInfo
 from ffripper.player import Player
-from ffripper.ui_elements import UiObjects, Dialog, ImageContextMenu, GladeWindow
+from ffripper.ui_elements import UiObjects, Dialog, GladeWindow
 from ffripper.image import Image
 from ffripper.settings import Settings
 from ffripper.logger import logger
+from ffripper.disc import Disc
+from ffripper.preset import formats
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gst, Gdk
+from gi.repository import Gtk, GLib, Gst
 
-# install()
 
-formats = ["mp2", "mp3",
-           "wav", "ogg",
-           "aac", 'opus',
-           'flac', 'm4a',
-           'wma', 'eac3',
-           'au', 'asf',
-           'spx', 'voc',
-           'aiff', 'caf',
-           'ac3', 'oga',
-           'afc', 'ast',
-           'mp4', 'wmv',
-           'avi', 'flv',
-           'm4v', 'mka',
-           'mkv', 'mov',
-           'mpg', 'vob',
-           'webm', 'acc',
-           'alac']
-formats.sort()
-entry = 0
-local_mount_point = "/run/user/1000/gvfs/cdda:host=sr0"
-is_running = False
 directory_name, filename = os.path.split(os.path.abspath(__file__))
 os.chdir(directory_name)
 
@@ -101,7 +78,7 @@ class Loader:
 class Preparer:
 
     def __init__(self, ):
-        self.input_dev = local_mount_point
+        self.input_dev = window.disc.mount_point
         self.format = window.format_chooser.get_active_text()
         self.output_folder = window.output_entry.get_text()
 
@@ -124,17 +101,15 @@ class RipperWindow(GladeWindow):
 
     def __init__(self, builder):
         GladeWindow.__init__(self, builder)
-
+        self.is_running = False
+        self.disc = Disc()
         self.list_store = Gtk.ListStore(bool, str, str, str, str)
         self.tracks_2_copy = []
         self.copy_metadata = None
         self.copy = None
         self.settings = Settings("../data/settings.yaml")
         self.metadata = None
-        try:
-            self.metadata = Metadata()
-        except RipperError as error:
-            Dialog(error.reason, error.text).error_dialog()
+        self.get_metadata()
         self.thread = Thread(target=self.execute_copy, args=())
         self.cover_art = False
         self.disc_tracks = None
@@ -145,9 +120,7 @@ class RipperWindow(GladeWindow):
 
         self.widget = builder.get_object('main_window')
         self.player = Player(self.refresh_button)
-        if os.path.isdir(local_mount_point):
-            self.player.set_file(local_mount_point + "/" + self.disc_tracks[0])
-        self.slider_handler_id = self.slider.connect("value-changed", self.on_slider_seek)
+        self.set_player()
         GladeWindow.connect_signals()
         self.widget.connect("destroy", Gtk.main_quit)
         self.widget.show_all()
@@ -160,6 +133,12 @@ class RipperWindow(GladeWindow):
         self.__dict__[attribute] = widget  # cache result
         return widget
 
+    def get_metadata(self):
+        try:
+            self.metadata = Metadata()
+        except RipperError as error:
+            Dialog(error.reason, error.text).error_dialog()
+
     def create_treeview(self):
         self.__create_toggle_column()
         self.__create_track_number_column()
@@ -168,7 +147,6 @@ class RipperWindow(GladeWindow):
         self.__create_year_column()
         self.column_toggle.set_clickable(True)
         self.column_toggle.set_widget(self.toggle_all_check_button)
-
 
     def __create_toggle_column(self):
         renderer_toggle = Gtk.CellRendererToggle()
@@ -203,19 +181,21 @@ class RipperWindow(GladeWindow):
         self.tree_view.append_column(year_column)
         renderer_year.connect("edited", self.year_edited)
 
+    def set_player(self):
+        if self.is_disc():
+            self.player.set_file(self.disc.mount_point + "/" + self.disc_tracks[0])
 
     @staticmethod
     def on_toggle_all():
         pass
 
     def set_cover_image(self):
-        self.cover_image.connect_object("event", self.image_menu, ImageContextMenu())
         try:
             if (self.metadata.get_cover() != "") and (self.metadata.get_cover() is not None):
                 self.cover_art = True
                 self.cover_image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
-        except AttributeError:
-            logger.error("Metadataerror")
+        except AttributeError as e:
+            logger.error(e)
 
     def set_treeview_content(self):
         tracks = None
@@ -237,7 +217,7 @@ class RipperWindow(GladeWindow):
 
     def get_tracks_on_disc(self):
         try:
-            self.disc_tracks = os.listdir(local_mount_point)
+            self.disc_tracks = os.listdir(self.disc.mount_point)
             return True
         except FileNotFoundError:
             self.nodiscdialog.run()
@@ -262,7 +242,6 @@ class RipperWindow(GladeWindow):
         return CDInfo(self.album_entry.get_text(), self.artist_entry.get_text(), tracks, None)
 
     def execute_copy(self):
-        global is_running
         info = Preparer().return_all()
         listener = MyCopyListener()
         cover = None
@@ -273,23 +252,22 @@ class RipperWindow(GladeWindow):
                                       cover)
             self.copy.run()
         except RipperError as error:
-            print("An Error has occurred: ", error.reason.to_string())
+            logger.warn("An Error has occurred: ", error.reason.to_string())
             GLib.idle_add(Dialog(error.reason.to_string(), error.text).error_dialog)
         self.thread = Thread(target=self.execute_copy, args=())
         if self.eject_standard.get_active() == 1:
             os.system("eject")
         GLib.idle_add(self.update_ui, "Rip", 0)
-        is_running = False
+        self.is_running = False
 
     def update_ui(self, copy_button_title, fraction):
-        # Dialog.finished_dialog()
         Dialog.notify()
         self.copy_button.set_label(copy_button_title)
         self.progressbar.set_fraction(fraction)
         self.tracks_2_copy = []
 
     def rip(self):
-        if self.is_disc() and self.format_chooser.get_active_text() != "":
+        if self._check_for_valid_config():
             path = self.output_entry.get_text()
             if os.path.isdir(path):
                 self.thread.start()
@@ -307,12 +285,6 @@ class RipperWindow(GladeWindow):
         self.thread = Thread(target=self.execute_copy, args=())
 
     @staticmethod
-    def image_menu(widget, event):
-        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
-            # make widget popup
-            widget.popup(None, None, None, event.button, event.time)
-
-    @staticmethod
     def on_nodiscdialog_response(*args):
         Gtk.main_quit()
 
@@ -320,27 +292,30 @@ class RipperWindow(GladeWindow):
         self.directory_error.hide()
 
     def on_copy_button_clicked(self, button):
-        global is_running
-        if self.is_disc() and self.format_chooser.get_active_text() != "":
-            if os.path.isdir(self.output_entry.get_text()):
-                if not is_running:
-                    is_running = True
-                    title_numbers = os.listdir(local_mount_point)
-                    tracks = []
-                    for i in range(len(self.list_store)):
-                        if self.list_store[i][0]:
-                            self.tracks_2_copy.append(title_numbers[i])
-                            tracks.append(TrackInfo(self.list_store[i][2], None,
-                                                    self.list_store[i][4], self.list_store[i][3]))
-                    self.copy_metadata = self.return_info(tracks)
-                    self.rip()
-                else:
-                    self.kill_process()
-                    is_running = False
-
+        if not self._check_for_valid_config():
+            return
+        if os.path.isdir(self.output_entry.get_text()):
+            if not self.is_running:
+                self.is_running = True
+                title_numbers = os.listdir(self.disc.mount_point)
+                tracks = []
+                for i in range(len(self.list_store)):
+                    if self.list_store[i][0]:
+                        self.tracks_2_copy.append(title_numbers[i])
+                        tracks.append(TrackInfo(self.list_store[i][2], None,
+                                                self.list_store[i][4], self.list_store[i][3]))
+                self.copy_metadata = self.return_info(tracks)
+                self.rip()
             else:
-                self.directory_error.format_secondary_text(self.output_entry.get_text() + "\n")
-                self.directory_error.run()
+                self.kill_process()
+                self.is_running = False
+
+        else:
+            self.directory_error.format_secondary_text(self.output_entry.get_text() + "\n")
+            self.directory_error.run()
+
+    def _check_for_valid_config(self):
+        return bool(self.is_disc() and self.format_chooser.get_active_text() != "")
 
     def on_search_button3_clicked(self, button):
         ui_objects = UiObjects()
@@ -364,12 +339,13 @@ class RipperWindow(GladeWindow):
             self.player.pause()
 
     def update_slider(self):
+        slider_handler_id = self.slider.connect("value-changed", self.on_slider_seek)
         if not self.player.is_playing:
             return False
         self.slider.set_range(0, self.player.get_duration())
-        self.slider.handler_block(self.slider_handler_id)
-        self.slider.set_value(self.player.get_position())
-        self.slider.handler_unblock(self.slider_handler_id)
+        self.slider.handler_block(slider_handler_id)
+        self.slider.set_value(player.get_position())
+        self.slider.handler_unblock(slider_handler_id)
 
         return True
 
@@ -391,10 +367,10 @@ class RipperWindow(GladeWindow):
         self.player_button.set_image(self.play_image)
 
     def on_tree_view_columns_changed(self, widget, row, column):
-        print("Changed row: ", row)
+        logger.debug("Changed row: ", row)
         self.player.reset()
         index = int(row.get_indices()[0])
-        self.player.set_file(local_mount_point + "/" + self.disc_tracks[index])
+        self.player.set_file(self.disc.mount_point + "/" + self.disc_tracks[index])
         self.player_button.set_image(self.pause_image)
         self.player.play()
 
@@ -411,6 +387,7 @@ class RipperWindow(GladeWindow):
         self.settings_window.hide()
 
     def on_refresh_button_clicked(self, button):
+        self.update_metadata()
         self.set_treeview_content()
 
     @staticmethod
@@ -438,11 +415,10 @@ class RipperWindow(GladeWindow):
         self.settings.set_theme(widget.get_active_text())
 
     def update_metadata(self):
-        self.metadata = Metadata()
+        self.get_metadata()
 
-    @staticmethod
-    def is_disc():
-        if os.path.isdir(local_mount_point):
+    def is_disc(self):
+        if os.path.isdir(self.disc.mount_point):
             return True
         print("No Device found")
         Dialog("No Disc Found", "Please insert a disc").error_dialog()

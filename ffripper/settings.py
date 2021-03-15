@@ -23,19 +23,27 @@ class Settings:
     def set_default_format(self, format: str):
         self.settings['standardFormat'] = format
 
-    def apply_changes(self):
-        with open(self.settings_file, "w") as file:
-            yaml.dump(self.settings, file)
-
     def set_theme(self, theme: str):
         if theme.lower() == "light":
             self.theme.set_light_theme()
+            self.settings['theme'] = theme.lower()
         elif theme.lower() == "dark":
             self.theme.set_dark_theme()
+            self.settings['theme'] = theme.lower()
         elif theme.lower() == "system":
             self.theme.set_system_default()
-        else:
-            pass
+            self.settings['theme'] = theme.lower()
+        self.apply_changes()
+
+    def set_create_album_directory(self, value: bool):
+        self.settings["albumdirectory"] = value
+
+    def set_create_artist_directory(self, value: bool):
+        self.settings["artistdirectory"] = value
+
+    def apply_changes(self):
+        with open(self.settings_file, "w") as file:
+            yaml.dump(self.settings, file)
 
     def get_eject(self) -> bool:
         return self.settings['always_eject']

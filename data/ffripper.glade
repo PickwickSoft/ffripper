@@ -106,7 +106,7 @@
     <property name="title" translatable="yes">FFRipper</property>
     <property name="window_position">center</property>
     <property name="default_width">500</property>
-    <property name="icon">ffripper.png</property>
+    <property name="icon_name">ffripper</property>
     <child type="titlebar">
       <placeholder/>
     </child>
@@ -768,8 +768,7 @@ audio-volume-medium-symbolic</property>
   </object>
   <object class="GtkDialog" id="nodiscdialog">
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">File exists already</property>
-    <property name="icon">ffripper.png</property>
+    <property name="icon_name">ffripper</property>
     <property name="type_hint">dialog</property>
     <property name="transient_for">main_window</property>
     <child type="titlebar">
@@ -1018,6 +1017,8 @@ audio-volume-medium-symbolic</property>
                 <property name="can_focus">False</property>
                 <property name="margin_left">5</property>
                 <property name="margin_right">5</property>
+                <property name="margin_top">5</property>
+                <property name="margin_bottom">5</property>
                 <property name="label" translatable="yes">Eject device after ripping:</property>
               </object>
               <packing>
@@ -1166,6 +1167,8 @@ audio-volume-medium-symbolic</property>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
                     <property name="margin_top">5</property>
                     <property name="margin_bottom">5</property>
                     <property name="label" translatable="yes">Artist directory create:</property>
@@ -1179,6 +1182,8 @@ audio-volume-medium-symbolic</property>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
                     <property name="margin_top">5</property>
                     <property name="margin_bottom">5</property>
                     <property name="label" translatable="yes">Album directory create:</property>

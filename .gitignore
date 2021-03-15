@@ -3,3 +3,4 @@ __pycache__/
 cd.glade~
 .vscode/
 test/
+/venv

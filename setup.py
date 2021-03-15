@@ -19,7 +19,9 @@
 import ffripper
 from setuptools import setup
 
-data_files = [('share/applications/', ['data/ffripper.desktop'])]
+data_files = [('share/applications/', ['data/ffripper.desktop']),
+              ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg'])  # Icon coming soon
+              ]
 
 setup(
     name=ffripper.__name__,
@@ -34,5 +36,5 @@ setup(
     platforms=ffripper.__platforms__,
     url=ffripper.__url__,
     download_url=ffripper.__download_url__,
-    keywords = ['rip', 'file format', 'audio', 'ffmpeg', 'cd']
+    keywords=['rip', 'file format', 'audio', 'ffmpeg', 'cd']
 )
