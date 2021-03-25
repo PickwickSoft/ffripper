@@ -31,12 +31,14 @@
 #   USA
 #
 
+import os
 import abc
 import subprocess
 import time
 import shlex
 from ffripper.errors import Reason, RipperError
 from ffripper.extended_subprocess import PopenFinishedCallback
+from ffripper.logger import logger
 
 
 class CopyProcessorListener(abc.ABC):
@@ -50,7 +52,8 @@ class CopyProcessorListener(abc.ABC):
 
 class CopyProcessor:
 
-    def __init__(self, input_location, output_location, file_format, listener, metadata, audio_files, cover):
+    def __init__(self, input_location, output_location, file_format, listener, metadata, audio_files, cover,
+                 album_directory=True, artist_directory=True):
         self.finished_processes = 0
         self.input_location = input_location
         self.output_location = output_location
@@ -62,6 +65,32 @@ class CopyProcessor:
         self.track_info = self.meta.get_tracks()
         self.processes = []
         self.cover = cover
+        self.album_directory = album_directory
+        self.artist_directory = artist_directory
+        self.base_location = output_location
+
+    def create_album_directory(self):
+        if self.album_directory:
+            self.output_location = os.path.join(self.output_location, self.meta.get_album())
+            logger.info("Creating Path {}".format(
+                self.output_location
+            ))
+            self.mkdir(self.output_location)
+
+    def create_artist_directory(self):
+        if self.artist_directory:
+            self.output_location = os.path.join(self.output_location, self.meta.get_artist())
+            logger.info("Creating Path {}".format(
+                self.output_location
+            ))
+            self.mkdir(self.output_location)
+
+    @staticmethod
+    def mkdir(path):
+        try:
+            os.mkdir(path)
+        except FileExistsError:
+            pass
 
     def stop_copy(self):
         self.should_continue = False
@@ -80,6 +109,7 @@ class CopyProcessor:
 
     def run(self):
         start_time = []
+        self.create_dirs()
         for i in range(len(self.audio_files)):
             if not self.should_continue:
                 return
@@ -109,6 +139,7 @@ class CopyProcessor:
                 raise RipperError(Reason.FFMPEGERROR, "An Error occurred while running FFMPEG")
             self.processes.append(ffmpeg)
         self.wait_for_finish()
+        self.rm_cover()
 
     def wait_for_finish(self):
         while self.finished_processes != len(self.audio_files):
@@ -118,3 +149,12 @@ class CopyProcessor:
     def on_finished(self):
         self.finished_processes += 1
         self.listener.on_copy_item(len(self.audio_files))
+
+    def create_dirs(self):
+        self.create_artist_directory()
+        self.create_album_directory()
+
+    def rm_cover(self):
+        path = os.path.join(self.base_location + "/cover.png")
+        if os.path.exists(path):    # Else it has been deleted from outside
+            os.remove(path)

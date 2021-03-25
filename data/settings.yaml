@@ -1,6 +1,6 @@
-albumdirectory: false
-always_eject: false
-artistdirectory: false
+albumdirectory: true
+always_eject: true
+artistdirectory: true
 outputFolder: /home
-standardFormat: aac
-theme: system
+standardFormat: mp3
+theme: light

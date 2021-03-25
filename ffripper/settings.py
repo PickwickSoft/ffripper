@@ -11,7 +11,7 @@ class Settings:
         self.theme = Theme()
 
     def __del__(self):
-        self.apply_changes()
+        self.commit()
         self.file.close()
 
     def set_eject(self, value: bool):
@@ -33,7 +33,7 @@ class Settings:
         elif theme.lower() == "system":
             self.theme.set_system_default()
             self.settings['theme'] = theme.lower()
-        self.apply_changes()
+        self.commit()
 
     def set_create_album_directory(self, value: bool):
         self.settings["albumdirectory"] = value
@@ -41,7 +41,7 @@ class Settings:
     def set_create_artist_directory(self, value: bool):
         self.settings["artistdirectory"] = value
 
-    def apply_changes(self):
+    def commit(self):
         with open(self.settings_file, "w") as file:
             yaml.dump(self.settings, file)
 
@@ -53,3 +53,12 @@ class Settings:
 
     def get_default_format(self) -> str:
         return self.settings['standardFormat']
+
+    def get_create_album_directory(self) -> bool:
+        return self.settings["albumdirectory"]
+
+    def get_create_artist_directory(self) -> bool:
+        return self.settings["artistdirectory"]
+
+    def get_theme(self) -> str:
+        return self.settings["theme"]

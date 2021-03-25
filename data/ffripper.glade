@@ -106,7 +106,7 @@
     <property name="title" translatable="yes">FFRipper</property>
     <property name="window_position">center</property>
     <property name="default_width">500</property>
-    <property name="icon_name">ffripper</property>
+    <property name="icon">music-svgrepo-com.svg</property>
     <child type="titlebar">
       <placeholder/>
     </child>
@@ -272,7 +272,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="margin_bottom">3</property>
-                        <property name="pixbuf">ffripper-missing-cover.png</property>
+                        <property name="icon_name">cd-case</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -683,7 +683,7 @@ audio-volume-medium-symbolic</property>
     <property name="comments" translatable="yes">Fast and simple to use audio-cd ripper</property>
     <property name="website">https://thepickwickclub.github.io/ffripper/</property>
     <property name="authors">Stefan Garlonta</property>
-    <property name="logo">ffripper.png</property>
+    <property name="logo_icon_name">ffripper</property>
     <property name="license_type">gpl-3-0</property>
     <signal name="response" handler="on_aboutdialog_response" swapped="no"/>
     <child type="titlebar">
@@ -1194,7 +1194,7 @@ audio-volume-medium-symbolic</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkSwitch" id="directory_create">
+                  <object class="GtkSwitch" id="artist_create">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="margin_top">5</property>

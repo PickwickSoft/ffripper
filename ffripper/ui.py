@@ -34,7 +34,6 @@
 import os
 import gi
 from threading import Thread
-from rich.traceback import install
 from ffripper.process_launcher import CopyProcessor, CopyProcessorListener
 from ffripper.errors import RipperError
 from ffripper.metadata import Metadata
@@ -120,7 +119,9 @@ class RipperWindow(GladeWindow):
 
         self.widget = builder.get_object('main_window')
         self.player = Player(self.refresh_button)
+        self.get_tracks_on_disc()
         self.set_player()
+        self.set_theme()
         GladeWindow.connect_signals()
         self.widget.connect("destroy", Gtk.main_quit)
         self.widget.show_all()
@@ -185,20 +186,22 @@ class RipperWindow(GladeWindow):
         if self.is_disc():
             self.player.set_file(self.disc.mount_point + "/" + self.disc_tracks[0])
 
-    @staticmethod
-    def on_toggle_all():
-        pass
-
     def set_cover_image(self):
         try:
             if (self.metadata.get_cover() != "") and (self.metadata.get_cover() is not None):
                 self.cover_art = True
                 self.cover_image.set_from_pixbuf(Image.bytes2pixbuf(self.metadata.get_cover()))
+            else:
+                logger.debug(self.cover_image.get_icon_name())
+                self.cover_image.set_from_icon_name("cd-case", 6)
+                logger.debug(self.cover_image.get_icon_name())
         except AttributeError as e:
             logger.error(e)
 
+
     def set_treeview_content(self):
         tracks = None
+        self.list_store.clear()
         if self.get_tracks_on_disc():
             if self.metadata is not None:
                 self.artist_entry.set_text(self.metadata.get_artist())
@@ -207,7 +210,7 @@ class RipperWindow(GladeWindow):
                 tracks = self.metadata.get_tracks()
             try:
                 for i in range(len(tracks)):
-                    self.list_store.append([True, str(i + 1), tracks[i].get_name(),
+                    self.list_store.append([False, str(i + 1), tracks[i].get_name(),
                                             tracks[i].get_artist(), tracks[i].get_year()])
             except TypeError:
                 for j in range(len(self.disc_tracks)):
@@ -222,6 +225,8 @@ class RipperWindow(GladeWindow):
         except FileNotFoundError:
             self.nodiscdialog.run()
             return False
+        except OSError:
+            self.get_tracks_on_disc()
 
     def text_edited(self, widget, path, text):
         self.list_store[path][1] = text
@@ -248,10 +253,21 @@ class RipperWindow(GladeWindow):
         try:
             if self.cover_art:
                 cover = Image.bytes2png(self.metadata.get_cover(), info[1], "cover")
-            self.copy = CopyProcessor(info[0], info[1], info[2], listener, self.copy_metadata, self.tracks_2_copy,
-                                      cover)
+            self.copy = CopyProcessor(
+                info[0],
+                info[1],
+                info[2],
+                listener,
+                self.copy_metadata,
+                self.tracks_2_copy,
+                cover,
+                self.album_create.get_active() == 1,
+                self.artist_create.get_active() == 1,
+            )
+
             self.copy.run()
         except RipperError as error:
+            print(error)
             logger.warn("An Error has occurred: ", error.reason.to_string())
             GLib.idle_add(Dialog(error.reason.to_string(), error.text).error_dialog)
         self.thread = Thread(target=self.execute_copy, args=())
@@ -367,7 +383,7 @@ class RipperWindow(GladeWindow):
         self.player_button.set_image(self.play_image)
 
     def on_tree_view_columns_changed(self, widget, row, column):
-        logger.debug("Changed row: ", row)
+        logger.debug("Changed row: {}".format(row))
         self.player.reset()
         index = int(row.get_indices()[0])
         self.player.set_file(self.disc.mount_point + "/" + self.disc_tracks[index])
@@ -376,18 +392,32 @@ class RipperWindow(GladeWindow):
 
     def on_setting_button_clicked(self, button):
         self.settings_window.show_all()
+        self.set_theme()
         self.eject_standard.set_active(self.settings.get_eject())
+        self.album_create.set_active(self.settings.get_create_album_directory())
+        self.artist_create.set_active(self.settings.get_create_artist_directory())
         self.standard_output_entry.set_text(str(self.settings.get_output_folder()))
         if self.settings.get_default_format() is not None:
             for i in range(len(formats) - 1):
                 if self.settings.get_default_format() == formats[i]:
                     self.standard_format.set_active(i)
 
+    def set_theme(self):
+        if self.settings.get_theme() == "system":
+            self.style_chooser.set_active(0)
+        elif self.settings.get_theme() == "light":
+            self.style_chooser.set_active(1)
+        else:
+            self.style_chooser.set_active(2)
+        self.settings.set_theme(self.style_chooser.get_active_text())
+
+
     def on_cancel_button_clicked(self, button):
         self.settings_window.hide()
 
     def on_refresh_button_clicked(self, button):
         self.update_metadata()
+        self.set_cover_image()
         self.set_treeview_content()
 
     @staticmethod
@@ -398,7 +428,9 @@ class RipperWindow(GladeWindow):
         self.settings.set_eject(self.eject_standard.get_active())
         self.settings.set_output_folder(self.standard_output_entry.get_text())
         self.settings.set_default_format(self.standard_format.get_active_text())
-        self.settings.apply_changes()
+        self.settings.set_create_album_directory(self.album_create.get_active() == 1)
+        self.settings.set_create_artist_directory(self.artist_create.get_active() == 1)
+        self.settings.commit()
         self.settings_window.hide()
 
         Loader.load_settings()
@@ -414,14 +446,17 @@ class RipperWindow(GladeWindow):
     def on_theme_changed(self, widget):
         self.settings.set_theme(widget.get_active_text())
 
+    def on_toggle_all(self, *args):
+        # TODO: Fix the toggle all Checkbox
+        pass
+
     def update_metadata(self):
         self.get_metadata()
 
     def is_disc(self):
         if self.disc.is_disc():
             return True
-        print("No Device found")
-        Dialog("No Disc Found", "Please insert a disc").error_dialog()
+        logger.info("No Device found")
         return False
 
 

@@ -20,7 +20,8 @@ import ffripper
 from setuptools import setup
 
 data_files = [('share/applications/', ['data/ffripper.desktop']),
-              ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg'])  # Icon coming soon
+              ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg'])
+              ('share/icons/hicolor/scalable/emblems/', ['data/cd-case.svg'])
               ]
 
 setup(

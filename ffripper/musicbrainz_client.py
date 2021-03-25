@@ -37,6 +37,7 @@ import musicbrainzngs
 import discid
 import ffripper
 from ffripper.errors import RipperError, Reason
+from ffripper.logger import logger
 
 
 class MusicbrainzClient:
@@ -50,7 +51,7 @@ class MusicbrainzClient:
             self.id = disc.id
             print(self.id)
         except discid.DiscError:
-            print("Sorry, no device found!")
+            logger.warning("No Disc Found")
 
     def get_metadata(self):
         self.get_disk_id()
