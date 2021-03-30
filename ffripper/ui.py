@@ -316,6 +316,8 @@ class RipperWindow(GladeWindow):
 
     def update_ui(self, copy_button_title, fraction):
         Dialog.notify()
+        self.copy_button.set_use_stock(False)
+        self.player_button.set_sensitive(True)
         self.copy_button.set_label(copy_button_title)
         self.progressbar.set_fraction(fraction)
         self.tracks_2_copy = []
@@ -327,6 +329,8 @@ class RipperWindow(GladeWindow):
                 self.thread.start()
                 self.copy_button.set_use_stock(True)
                 self.copy_button.set_label("gtk-cancel")
+                self.player_button.set_sensitive(False)
+                self.player.pause()
                 return
             else:
                 self.directory_error.format_secondary_text(path + "\n")
@@ -337,6 +341,7 @@ class RipperWindow(GladeWindow):
         self.thread.join()
         self.copy_button.set_use_stock(False)
         self.copy_button.set_label("Rip")
+        self.player_button.set_sensitive(True)
         self.progressbar.set_fraction(0)
         self.thread = Thread(target=self.execute_copy, args=())
 
@@ -400,7 +405,7 @@ class RipperWindow(GladeWindow):
             return False
         self.slider.set_range(0, self.player.get_duration())
         self.slider.handler_block(slider_handler_id)
-        self.slider.set_value(player.get_position())
+        self.slider.set_value(self.player.get_position())
         self.slider.handler_unblock(slider_handler_id)
 
         return True
