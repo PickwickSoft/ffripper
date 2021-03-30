@@ -325,7 +325,8 @@ class RipperWindow(GladeWindow):
             path = self.output_entry.get_text()
             if os.path.isdir(path):
                 self.thread.start()
-                self.copy_button.set_label("Cancel")
+                self.copy_button.set_use_stock(True)
+                self.copy_button.set_label("gtk-cancel")
                 return
             else:
                 self.directory_error.format_secondary_text(path + "\n")
@@ -334,6 +335,7 @@ class RipperWindow(GladeWindow):
     def kill_process(self):
         self.copy.stop_copy()
         self.thread.join()
+        self.copy_button.set_use_stock(False)
         self.copy_button.set_label("Rip")
         self.progressbar.set_fraction(0)
         self.thread = Thread(target=self.execute_copy, args=())
