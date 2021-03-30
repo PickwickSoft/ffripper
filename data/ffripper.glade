@@ -106,7 +106,7 @@
     <property name="title" translatable="yes">FFRipper</property>
     <property name="window_position">center</property>
     <property name="default_width">500</property>
-    <property name="icon">music-svgrepo-com.svg</property>
+    <property name="icon_name">ffripper</property>
     <child type="titlebar">
       <placeholder/>
     </child>

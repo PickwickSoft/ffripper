@@ -34,6 +34,7 @@ class Reason(Enum):
     FFMPEGERROR = 4
     NODISCERROR = 5
     PERMISIONERROR = 6
+    FFMPEGNOTINSTALLED = 7
 
     def to_string(self):
         if self == Reason.NETWORKERROR:
@@ -48,5 +49,7 @@ class Reason(Enum):
             return "No Disc Found Error"
         elif self == Reason.PERMISIONERROR:
             return "Permission Denied"
+        elif self == Reason.FFMPEGNOTINSTALLED:
+            return "FFmpeg is not installed"
         else:
             return "Unknown"

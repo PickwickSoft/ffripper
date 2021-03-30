@@ -37,16 +37,19 @@ import subprocess
 import time
 import shlex
 from ffripper.errors import Reason, RipperError
-from ffripper.extended_subprocess import PopenFinishedCallback
+from ffripper.utils import is_installed
+from ffripper.progress import FFmpegProgress
 from ffripper.logger import logger
 
 
 class CopyProcessorListener(abc.ABC):
 
-    def on_copy_item(self, count):
+    @staticmethod
+    def on_copy_item(count):
         pass
 
-    def on_filename(self, file):
+    @staticmethod
+    def on_filename(file):
         pass
 
 
@@ -108,19 +111,21 @@ class CopyProcessor:
         ]
 
     def run(self):
+        logger.info("Started at {}".format(time.time()))
         start_time = []
         self.create_dirs()
         for i in range(len(self.audio_files)):
             if not self.should_continue:
                 return
             start_time.append(time.time())
-            print(time.time(), ": starting subprocess ", i)
+            logger.debug("{}: starting subprocess {}".format(time.time(), i))
             cover_art_stream = (
                 "" if self.cover is None else "-i \"{0}\"".format(self.cover)
             )
-
-            rip_command = """ffmpeg -y -threads 0 -i \"{0}/{1}\" {2} -metadata title=\"{3}\"  -metadata artist=\"{4}\" 
-                            -metadata album=\"{5}\" -metadata date=\"{6}\" \"{7}/{8}\"""".format(
+            ffmpeg_path = is_installed("ffmpeg")
+            rip_command = """{0} -y -threads 0 -i \"{1}/{2}\" {3} -metadata title=\"{4}\"  -metadata artist=\"{5}\" 
+                            -metadata album=\"{6}\" -metadata date=\"{7}\" \"{8}/{9}\"""".format(
+                ffmpeg_path,
                 self.input_location,
                 self.audio_files[i],
                 cover_art_stream,
@@ -133,8 +138,11 @@ class CopyProcessor:
                     self.track_info[i].get_name(),
                     self.format))
             try:
-                print(rip_command)
-                ffmpeg = subprocess.Popen(shlex.split(rip_command), stderr=subprocess.STDOUT)
+                logger.debug(rip_command)
+                ffmpeg = subprocess.Popen(shlex.split(rip_command),
+                                          stderr=subprocess.STDOUT,
+                                          stdout=subprocess.PIPE
+                                          )
             except:
                 raise RipperError(Reason.FFMPEGERROR, "An Error occurred while running FFMPEG")
             self.processes.append(ffmpeg)
@@ -144,11 +152,10 @@ class CopyProcessor:
     def wait_for_finish(self):
         while self.finished_processes != len(self.audio_files):
             for i in self.processes:
-                PopenFinishedCallback(i, self.on_finished)
+                FFmpegProgress(i, len(self.audio_files), self.listener.on_copy_item, self.on_finished)
 
     def on_finished(self):
         self.finished_processes += 1
-        self.listener.on_copy_item(len(self.audio_files))
 
     def create_dirs(self):
         self.create_artist_directory()
@@ -156,5 +163,5 @@ class CopyProcessor:
 
     def rm_cover(self):
         path = os.path.join(self.base_location + "/cover.png")
-        if os.path.exists(path):    # Else it has been deleted from outside
+        if os.path.exists(path):  # Else it has been deleted from outside
             os.remove(path)

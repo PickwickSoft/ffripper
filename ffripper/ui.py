@@ -68,6 +68,7 @@ class Loader:
         settings = Settings("../data/settings.yaml")
         if settings.get_output_folder() != '':
             window.output_entry.set_text(settings.get_output_folder())
+
         if settings.get_default_format() is not None:
             for i in range(len(formats) - 1):
                 if settings.get_default_format() == formats[i]:
@@ -88,7 +89,13 @@ class Preparer:
 class MyCopyListener(CopyProcessorListener):
     @staticmethod
     def on_copy_item(count):
-        percentage = 1 / count
+        GLib.idle_add(MyCopyListener.__main_thread_updater, count)
+
+    @staticmethod
+    def __main_thread_updater(count):
+        percentage = count / 100
+        logger.debug("Current fraction: {}%".format(window.progressbar.get_fraction() * 100))
+        logger.debug("Fraction: {}".format(percentage))
         window.progressbar.set_fraction(window.progressbar.get_fraction() + percentage)
 
     @staticmethod
