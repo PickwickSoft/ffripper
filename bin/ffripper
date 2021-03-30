@@ -7,6 +7,6 @@ from gi.repository import Gtk
 from ffripper.ui import main
 
 builder = Gtk.Builder()
-builder.add_from_file("../data/ffripper.glade")
+builder.add_from_file("/usr/share/applications/")
 
-main(builder)
+main(builder, "/usr/share/ffripper/")

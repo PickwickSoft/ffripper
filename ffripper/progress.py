@@ -18,13 +18,8 @@
 
 import io
 import re
-from time import sleep
-import shlex
-import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from subprocess import Popen
-
-from ffripper.logger import logger
 
 
 def duration_in_seconds(duration):

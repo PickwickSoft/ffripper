@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=FFRipper
 Comment=A fast, powerful and simple to use Audio-CD ripper for Linux supporting 30+ output formats
-Exec=ffripper 
+Exec=ffripper
 Icon=ffripper
 GenericName=CD Ripper
 Terminal=false

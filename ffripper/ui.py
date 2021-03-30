@@ -68,7 +68,8 @@ class Loader:
         settings = Settings("../data/settings.yaml")
         if settings.get_output_folder() != '':
             window.output_entry.set_text(settings.get_output_folder())
-
+        window.artist_create.set_active(settings.get_create_artist_directory())
+        window.album_create.set_active(settings.get_create_album_directory())
         if settings.get_default_format() is not None:
             for i in range(len(formats) - 1):
                 if settings.get_default_format() == formats[i]:
@@ -105,7 +106,7 @@ class MyCopyListener(CopyProcessorListener):
 
 class RipperWindow(GladeWindow):
 
-    def __init__(self, builder):
+    def __init__(self, builder: Gtk.Builder, settings: str):
         GladeWindow.__init__(self, builder)
         self.is_running = False
         self.disc = Disc()
@@ -113,7 +114,7 @@ class RipperWindow(GladeWindow):
         self.tracks_2_copy = []
         self.copy_metadata = None
         self.copy = None
-        self.settings = Settings("../data/settings.yaml")
+        self.settings = Settings(settings)
         self.metadata = None
         self.get_metadata()
         self.thread = Thread(target=self.execute_copy, args=())
@@ -470,9 +471,9 @@ class RipperWindow(GladeWindow):
 window = None
 
 
-def main(builder):
+def main(builder, data):
     global window
-    window = RipperWindow(builder)
+    window = RipperWindow(builder, data + "settings.yaml")
     load = Loader()
     load.load_formats(formats)
     load.load_settings()
