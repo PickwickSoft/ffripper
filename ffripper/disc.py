@@ -65,22 +65,8 @@ class Disc:
             desktop_session = desktop_session.lower()
             if desktop_session in ["gnome", "ubuntu"]:
                 return "/run/user/1000/gvfs/cdda:host=sr0"
-            elif desktop_session in ["unity", "cinnamon", "pantheon"]:
-                return ""
-            elif desktop_session == "mate":
-                ""
-            elif desktop_session == "lxde":
-                ""
-            elif desktop_session == "xfce" or desktop_session.startswith("xubuntu"):
-                ""
-            elif desktop_session in ["kde", "kde3", "trinity"]:
-                ""
-            elif desktop_session in ["fluxbox", "jwm", "openbox", "afterstep"]:
-                ""
-            elif desktop_session == "blackbox":
-                ""
-            elif desktop_session == "windowmaker":
-                ""
+            else:
+                return "/media/cdrom0"
 
     def is_disc(self):
         return bool(os.path.isdir(self.mount_point))
