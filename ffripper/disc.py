@@ -46,22 +46,27 @@
 #   USA
 #
 
-class TrackInfo:
+import os, shlex
 
-    def __init__(self, track_name, track_length, track_year, track_artist):
-        self.track_name = track_name
-        self.track_length = track_length
-        self.track_year = track_year
-        self.track_artist = track_artist
 
-    def get_name(self):
-        return self.track_name
+class Disc:
 
-    def get_length(self):
-        return self.track_length
+    def __init__(self):
+        self.mount_point = self.get_mount_point()
 
-    def get_year(self):
-        return self.track_year
+    def get_mount_point(self):
+        self.mount_point = self._get_point_by_desktop_session()
+        return self.mount_point
 
-    def get_artist(self):
-        return self.track_artist
+    @staticmethod
+    def _get_point_by_desktop_session():
+        desktop_session = os.environ.get("DESKTOP_SESSION")
+        if desktop_session is not None:
+            desktop_session = desktop_session.lower()
+            if desktop_session in ["gnome", "ubuntu"]:
+                return "/run/user/1000/gvfs/cdda:host=sr0"
+            else:
+                return "/media/cdrom0"
+
+    def is_disc(self):
+        return bool(os.path.isdir(self.mount_point))

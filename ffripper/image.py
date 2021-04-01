@@ -1,5 +1,35 @@
-#   ffripper-1.0 - Audio-CD ripper.
+#   ffripper - Audio-CD ripper.
 #   Copyright 2020-2021 Stefan Garlonta
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; version 3 of the License.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+#   General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+#   USA
+#
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; version 3 of the License.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+#   General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+#   USA
+#
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -21,6 +51,7 @@ import gi
 gi.require_version('GdkPixbuf', '2.0')
 from PIL import Image as PilImage
 from gi.repository import GLib, GdkPixbuf
+from ffripper.errors import *
 
 
 class Image:
@@ -61,9 +92,10 @@ class Image:
         :return: the full path to image
         """
         _result_file = output_dir + "/" + filename
-
-        _image = PilImage.open(io.BytesIO(data))
-        _image.save(_result_file + '.png', 'PNG')
-        return _result_file + ".png"
-
+        try:
+            _image = PilImage.open(io.BytesIO(data))
+            _image.save(_result_file + '.png', 'PNG')
+            return _result_file + ".png"
+        except PermissionError as e:
+            raise RipperError(Reason.PERMISIONERROR, "Unable to write to {}".format(output_dir)) from e
 

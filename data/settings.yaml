@@ -1,6 +1,6 @@
-albumdirectory: false
+albumdirectory: true
 always_eject: true
-artistdirectory: false
-autodetect: true
-outputFolder: /home
-standardFormat: 
+artistdirectory: true
+outputFolder: /home/stefan/Musik
+standardFormat: mp3
+theme: light

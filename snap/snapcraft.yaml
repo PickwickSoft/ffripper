@@ -3,9 +3,10 @@ version: '0.1'
 summary: FFRipper
 description: |
   A fast, powerful and simple to use Audio-CD ripper.
-confinement: devmode
+confinement: classic
 base: core18
 license: GPL-3.0+
+icon: data/ffripper.svg
 
 parts:
   ffripper:
@@ -15,12 +16,12 @@ parts:
       - rich>=9.12.3
       - setuptools>=49.3.1
       - Pillow>=7.2.0
-      - PyYAML
     source: https://github.com/ThePickwickClub/ffripper.git
     stage-packages:
       - python3-gi
       - python3-libdiscid
       - python3-musicbrainzngs
+      - python3-yaml
       - ffmpeg
 
 apps:

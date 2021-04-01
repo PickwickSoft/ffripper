@@ -45,23 +45,21 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #   USA
 #
+import os
 
-class TrackInfo:
+from ffripper.errors import RipperError, Reason
 
-    def __init__(self, track_name, track_length, track_year, track_artist):
-        self.track_name = track_name
-        self.track_length = track_length
-        self.track_year = track_year
-        self.track_artist = track_artist
 
-    def get_name(self):
-        return self.track_name
-
-    def get_length(self):
-        return self.track_length
-
-    def get_year(self):
-        return self.track_year
-
-    def get_artist(self):
-        return self.track_artist
+def is_installed(program):
+    """
+    If program is a program name, returns the absolute path to this program if
+    included in the PATH enviromental variable, else empty string.
+    If program is an absolute path, returns the path if it's executable, else
+    empty sring.
+    """
+    program = os.path.expanduser(program)
+    for path in os.getenv('PATH').split(os.pathsep):
+        fpath = os.path.join(path, program)
+        if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
+            return fpath
+    raise RipperError(Reason.FFMPEGNOTINSTALLED, "Please install ffmpeg and try again")

@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.22.2 -->
+<!--  ffripper - Audio-CD ripper. -->
+<!--  Copyright 2020-2021 Stefan Garlonta -->
+<!-- -->
+<!--  This program is free software; you can redistribute it and/or modify -->
+<!--  it under the terms of the GNU General Public License as published by -->
+<!--  the Free Software Foundation; version 3 of the License. -->
+<!-- -->
+<!--  This program is distributed in the hope that it will be useful, but -->
+<!--  WITHOUT ANY WARRANTY; without even the implied warranty of -->
+<!--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU -->
+<!--  General Public License for more details. -->
+<!-- -->
+<!--  You should have received a copy of the GNU General Public License -->
+<!--  along with this program; if not, write to the Free Software -->
+<!--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 -->
+<!--  USA -->
+<!-- -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkAdjustment" id="adjustment1">
@@ -106,7 +123,7 @@
     <property name="title" translatable="yes">FFRipper</property>
     <property name="window_position">center</property>
     <property name="default_width">500</property>
-    <property name="icon">ffripper.png</property>
+    <property name="icon_name">ffripper</property>
     <child type="titlebar">
       <placeholder/>
     </child>
@@ -272,7 +289,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="margin_bottom">3</property>
-                        <property name="pixbuf">ffripper-missing-cover.png</property>
+                        <property name="icon_name">cd-case</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -683,7 +700,7 @@ audio-volume-medium-symbolic</property>
     <property name="comments" translatable="yes">Fast and simple to use audio-cd ripper</property>
     <property name="website">https://thepickwickclub.github.io/ffripper/</property>
     <property name="authors">Stefan Garlonta</property>
-    <property name="logo">ffripper.png</property>
+    <property name="logo_icon_name">ffripper</property>
     <property name="license_type">gpl-3-0</property>
     <signal name="response" handler="on_aboutdialog_response" swapped="no"/>
     <child type="titlebar">
@@ -768,8 +785,8 @@ audio-volume-medium-symbolic</property>
   </object>
   <object class="GtkDialog" id="nodiscdialog">
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">File exists already</property>
-    <property name="icon">ffripper.png</property>
+    <property name="title" translatable="yes">FFRipper - Disc Not Found</property>
+    <property name="icon_name">ffripper</property>
     <property name="type_hint">dialog</property>
     <property name="transient_for">main_window</property>
     <child type="titlebar">
@@ -955,6 +972,56 @@ audio-volume-medium-symbolic</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">5</property>
+                <property name="margin_right">5</property>
+                <property name="margin_top">5</property>
+                <property name="margin_bottom">5</property>
+                <property name="label" translatable="yes">Select Theme:</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBoxText" id="style_chooser">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">5</property>
+                <property name="margin_right">5</property>
+                <property name="margin_top">5</property>
+                <property name="margin_bottom">5</property>
+                <property name="active">0</property>
+                <items>
+                  <item translatable="yes">System</item>
+                  <item translatable="yes">Light</item>
+                  <item translatable="yes">Dark</item>
+                </items>
+                <signal name="changed" handler="on_theme_changed" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="pack_type">end</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -970,37 +1037,10 @@ audio-volume-medium-symbolic</property>
                 <property name="margin_right">5</property>
                 <property name="margin_top">5</property>
                 <property name="margin_bottom">5</property>
-                <property name="label" translatable="yes">Auto Music detect:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="margin_left">5</property>
-                <property name="margin_right">5</property>
                 <property name="label" translatable="yes">Eject device after ripping:</property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSwitch" id="auto_detect">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="margin_left">5</property>
-                <property name="margin_right">5</property>
-                <property name="margin_top">5</property>
-                <property name="margin_bottom">5</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
                 <property name="top_attach">0</property>
               </packing>
             </child>
@@ -1015,14 +1055,14 @@ audio-volume-medium-symbolic</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="top_attach">1</property>
+                <property name="top_attach">0</property>
               </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -1064,7 +1104,7 @@ audio-volume-medium-symbolic</property>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -1080,7 +1120,7 @@ audio-volume-medium-symbolic</property>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -1125,7 +1165,7 @@ audio-volume-medium-symbolic</property>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -1134,78 +1174,14 @@ audio-volume-medium-symbolic</property>
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
             <child>
-              <object class="GtkExpander">
+              <object class="GtkGrid">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_top">5</property>
+                <property name="margin_bottom">5</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">5</property>
                 <child>
-                  <object class="GtkGrid">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                    <property name="row_spacing">5</property>
-                    <property name="column_spacing">5</property>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="label" translatable="yes">Artist directory create:</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="label" translatable="yes">Album directory create:</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkSwitch" id="directory_create">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkSwitch" id="album_create">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                </child>
-                <child type="label">
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -1213,24 +1189,64 @@ audio-volume-medium-symbolic</property>
                     <property name="margin_right">5</property>
                     <property name="margin_top">5</property>
                     <property name="margin_bottom">5</property>
-                    <property name="label" translatable="yes">Advanced Settings</property>
-                    <attributes>
-                      <attribute name="style" value="oblique"/>
-                    </attributes>
+                    <property name="label" translatable="yes">Artist directory create:</property>
                   </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                    <property name="label" translatable="yes">Album directory create:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="artist_create">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="album_create">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">0</property>
               </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
       </object>

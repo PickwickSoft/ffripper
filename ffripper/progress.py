@@ -46,22 +46,59 @@
 #   USA
 #
 
-class TrackInfo:
+import io
+import re
+from concurrent.futures import ThreadPoolExecutor
+from subprocess import Popen
 
-    def __init__(self, track_name, track_length, track_year, track_artist):
-        self.track_name = track_name
-        self.track_length = track_length
-        self.track_year = track_year
-        self.track_artist = track_artist
 
-    def get_name(self):
-        return self.track_name
+def duration_in_seconds(duration):
+    """
+    Return the number of seconds of duration, an integer.
+    Duration is a string of type hh:mm:ss.ts
+    """
+    duration = duration.split('.')[0]  # get rid of milliseconds
+    hours, mins, secs = [int(i) for i in duration.split(':')]
+    return secs + (hours * 3600) + (mins * 60)
 
-    def get_length(self):
-        return self.track_length
 
-    def get_year(self):
-        return self.track_year
+class FFmpegProgress:
 
-    def get_artist(self):
-        return self.track_artist
+    def __init__(self, process: Popen, total_processes: int, listener, finished_call) -> None:
+        self._proc = process
+        self._total = total_processes
+        self._listener = listener
+        self._finished = finished_call
+        with ThreadPoolExecutor() as executor:
+            executor.submit(self.parse_output)
+
+    def parse_output(self):
+        final_output = myline = ''
+        old_percentage = 0
+        reader = io.TextIOWrapper(self._proc.stdout, encoding='utf8')
+        while True:
+            out = reader.read(1)
+            if out == '' and self._proc.poll() is not None:
+                break
+            myline += out
+            if out in ('\r', '\n'):
+                m = re.search("Duration: ([0-9:.]+)", myline)
+                if m:
+                    total = duration_in_seconds(m.group(1))
+                n = re.search("time=([0-9:]+)", myline)
+                # time can be of format 'time=hh:mm:ss.ts' or 'time=ss.ts'
+                # depending on ffmpeg version
+                if n:
+                    time = n.group(1)
+                    if ':' in time:
+                        time = duration_in_seconds(time)
+                    now_sec = int(float(time))
+                    try:
+                        percentage = 100 * now_sec / total / self._total
+                        self._listener(percentage - old_percentage)
+                        old_percentage = percentage
+                    except (UnboundLocalError, ZeroDivisionError):
+                        pass
+                final_output += myline
+                myline = ''
+        self._finished()

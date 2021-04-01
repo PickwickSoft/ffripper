@@ -1,14 +1,14 @@
 [Desktop Entry]
 Name=FFRipper
 Comment=A fast, powerful and simple to use Audio-CD ripper for Linux supporting 30+ output formats
-Exec=ffripper 
-Icon=ffripper.png
+Exec=ffripper
+Icon=ffripper
 GenericName=CD Ripper
 Terminal=false
 MultipleArgs=false
 Type=Application
-Categories=AudioVideo;Video;DiscBurning;GTK;GNOME;
-Keywords=ffripper;ripper;cd
+Categories=AudioVideo; DiscBurning; GNOME; GTK; Utility; Video
+Keywords=ffripper;ripper;cd;disc
 Hidden=false
 StartupNotify=true
 MimeType=application/x-cda
