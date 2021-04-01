@@ -28,4 +28,4 @@ apps:
   ffripper:
     command: bin/ffripper
     extensions: [gnome-3-28]
-    desktop: usr/local/share/applications/ffripper.desktop
+    desktop: data/ffripper.desktop
