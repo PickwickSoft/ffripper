@@ -145,6 +145,7 @@ class RipperWindow(GladeWindow):
         self.copy_metadata = None
         self.copy = None
         self.settings = Settings(settings)
+        self.set_theme()
         self.metadata = None
         self.get_metadata()
         self.thread = Thread(target=self.execute_copy, args=())
@@ -159,7 +160,6 @@ class RipperWindow(GladeWindow):
         self.player = Player(self.refresh_button)
         self.get_tracks_on_disc()
         self.set_player()
-        self.set_theme()
         GladeWindow.connect_signals()
         self.widget.connect("destroy", Gtk.main_quit)
         self.widget.show_all()
