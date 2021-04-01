@@ -1,2 +1,5 @@
-include README
-include LICENSE
+include AUTHORS
+include bin/ffripper
+include test/*
+include data/*
+recursive-exclude ffripper *.pyc

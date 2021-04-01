@@ -33,13 +33,16 @@
 #   USA
 #
 
-import gi
+import gi, os
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 from ffripper.ui import main
 
 builder = Gtk.Builder()
-builder.add_from_file("/usr/share/applications/")
-
-main(builder, "/usr/share/ffripper/")
+if os.path.exists("/usr/share/ffripper/ffripper.glade"):
+	builder.add_from_file("/usr/share/ffripper/ffripper.glade")
+	main(builder, "/usr/share/ffripper/")
+elif os.path.exists("/usr/local/share/ffripper/ffripper.glade"):
+	builder.add_from_file("/usr/local/share/ffripper/ffripper.glade")
+	main(builder, "/usr/local/share/ffripper/")

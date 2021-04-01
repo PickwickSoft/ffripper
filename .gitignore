@@ -4,3 +4,4 @@ cd.glade~
 .vscode/
 test/
 /venv
+/build

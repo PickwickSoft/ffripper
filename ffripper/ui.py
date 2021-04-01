@@ -94,8 +94,8 @@ class Loader:
             window.standard_format.append_text(audio_formats[i])
 
     @staticmethod
-    def load_settings():
-        settings = Settings("../data/settings.yaml")
+    def load_settings(file):
+        settings = Settings(file)
         if settings.get_output_folder() != '':
             window.output_entry.set_text(settings.get_output_folder())
         window.artist_create.set_active(settings.get_create_artist_directory())
@@ -514,6 +514,6 @@ def main(builder, data):
     window = RipperWindow(builder, data + "settings.yaml")
     load = Loader()
     load.load_formats(formats)
-    load.load_settings()
+    load.load_settings(data + "settings.yaml")
     logger.info("Started FFRipper")
     Gtk.main()
