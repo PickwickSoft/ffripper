@@ -138,14 +138,14 @@ class RipperWindow(GladeWindow):
 
     def __init__(self, builder: Gtk.Builder, settings: str):
         GladeWindow.__init__(self, builder)
+        self.settings = Settings(settings)
+        self.set_theme()
         self.is_running = False
         self.disc = Disc()
         self.list_store = Gtk.ListStore(bool, str, str, str, str)
         self.tracks_2_copy = []
         self.copy_metadata = None
         self.copy = None
-        self.settings = Settings(settings)
-        self.set_theme()
         self.metadata = None
         self.get_metadata()
         self.thread = Thread(target=self.execute_copy, args=())
