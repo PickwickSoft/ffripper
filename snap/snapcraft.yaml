@@ -3,7 +3,7 @@ version: '0.1'
 summary: FFRipper
 description: |
   A fast, powerful and simple to use Audio-CD ripper.
-confinement: classic
+confinement: devmode
 base: core18
 license: GPL-3.0+
 icon: data/ffripper.svg
