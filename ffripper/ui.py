@@ -330,6 +330,7 @@ class RipperWindow(GladeWindow):
                 self.copy_button.set_use_stock(True)
                 self.copy_button.set_label("gtk-cancel")
                 self.player_button.set_sensitive(False)
+                self.player_button.set_image(self.play_image)
                 self.player.pause()
                 return
             else:
