@@ -15,7 +15,6 @@ parts:
     python-packages:
       - rich>=9.12.3
       - setuptools>=49.3.1
-      - Pillow>=7.2.0
     source: https://github.com/ThePickwickClub/ffripper.git
     stage-packages:
       - python3-gi
@@ -23,6 +22,7 @@ parts:
       - python3-musicbrainzngs
       - python3-yaml
       - ffmpeg
+      - python3-pil
 
 apps:
   ffripper:
