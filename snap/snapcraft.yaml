@@ -6,7 +6,6 @@ description: |
 confinement: devmode
 base: core18
 license: GPL-3.0+
-icon: data/ffripper.svg
 
 parts:
   ffripper:
@@ -28,4 +27,22 @@ apps:
   ffripper:
     command: bin/ffripper
     extensions: [gnome-3-28]
-    desktop: data/ffripper.desktop
+    desktop: /usr/local/share/applications/ffripper.desktop
+    slots:
+      - dbus-daemon
+    plugs:
+      - audio-playback
+      - alsa
+      - hardware-observe
+      - home
+      - network
+      - removable-media
+      - optical-drive
+      - personal-files
+      - pulseaudio
+
+slots:
+  dbus-daemon:
+    interface: dbus
+    bus: session
+    name: ffripper
