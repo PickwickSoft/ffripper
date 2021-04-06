@@ -27,7 +27,6 @@ apps:
   ffripper:
     command: bin/ffripper
     extensions: [gnome-3-28]
-    desktop: /usr/share/applications/ffripper.desktop
     slots:
       - dbus-daemon
     plugs:
