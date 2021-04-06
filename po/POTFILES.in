@@ -5,4 +5,4 @@ data/ffripper.glade
 
 ffripper/ui.py
 ffripper/ui_elements.py
-ffripper/utils
+ffripper/utils.py
