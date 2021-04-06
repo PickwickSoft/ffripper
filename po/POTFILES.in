@@ -1,0 +1,8 @@
+[encoding: UTF-8]
+
+data/ffripper.desktop
+data/ffripper.glade
+
+ffripper/ui.py
+ffripper/ui_elements.py
+ffripper/utils
