@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 #   ffripper - Audio-CD ripper.
 #   Copyright 2020-2021 Stefan Garlonta
 #
@@ -48,31 +50,43 @@
 
 import os
 import ffripper
-from distutils.core import setup
+import sys
 
-data_files = [('share/applications/', ['data/ffripper.desktop']),
-              ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg']),
-              ('share/icons/hicolor/scalable/emblems/', ['data/cd-case.svg']),
-              ('share/ffripper/', ['data/ffripper.glade']),
-              ('share/ffripper/', ['data/settings.yaml'])
-              ]
+try:
+    import DistUtilsExtra.auto
+except ImportError:
+    sys.stderr.write('You need python-distutils-extra\n')
+    sys.exit(1)
 
-setup(
-    name=ffripper.__name__,
-    packages=[ffripper.__name__],
-    scripts=['bin/ffripper'],
-    data_files=data_files,
+import DistUtilsExtra.auto
+
+
+class Install(DistUtilsExtra.auto.install_auto):
+    def run(self):
+        DistUtilsExtra.auto.install_auto.run(self)
+        print("Changing mode of settings.yaml to 777")
+        if os.path.exists('/usr/share/ffripper/'):
+            os.chmod('/usr/share/ffripper/settings.yaml', 0o777)
+        elif os.path.exists('/usr/local/share/ffripper/'):
+            os.chmod('/usr/local/share/ffripper/settings.yaml', 0o777)
+
+
+DistUtilsExtra.auto.setup(
+    name="ffripper",
     version=ffripper.__version__,
-    description=ffripper.__description__,
-    author=ffripper.__author__,
-    author_email=ffripper.__author_email__,
+    description=(
+        ffripper.__description__
+    ),
     license=ffripper.__license__,
-    platforms=ffripper.__platforms__,
+    data_files=[
+        ('share/icons/hicolor/scalable/emblems/', ['data/cd-case.svg']),
+        ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg'])
+    ],
+    cmdclass={
+        'install': Install
+    },
     url=ffripper.__url__,
     download_url=ffripper.__download_url__,
-    keywords=['rip', 'file format', 'audio', 'ffmpeg', 'cd', 'ffripper']
+    author=ffripper.__author__,
+    author_email=ffripper.__author_email__
 )
-if os.path.exists('/usr/share/ffripper/'):
-    os.chmod('/usr/share/ffripper/settings.yaml', 0o777)
-elif os.path.exists('/usr/local/share/ffripper/'):
-    os.chmod('/usr/local/share/ffripper/settings.yaml', 0o777)
