@@ -1,0 +1,157 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: FFRipper\n"
+"Language: es\n"
+
+#: data/ffripper.desktop:3
+msgid "A fast, powerful and simple to use Audio-CD ripper for Linux supporting 30+ output formats"
+msgstr "Extractor de CD rápido, potente y fácil de usar para Linux que admite más de 30 formatos de salida"
+
+#: data/ffripper.glade:50
+msgid "Open Preferences"
+msgstr "Configuración abierta"
+
+#: data/ffripper.glade:51
+msgid "Preferences"
+msgstr "Ajustes"
+
+#: data/ffripper.glade:76
+msgid "Reload Metadata"
+msgstr "Recargar metadatos"
+
+#: data/ffripper.glade:50
+msgid "Eject disc"
+msgstr "Expulsar CD"
+
+#: data/ffripper.glade:104
+msgid "About"
+msgstr "terminado"
+
+#: data/ffripper.glade:151
+msgid "Settings"
+msgstr "Ajustes"
+
+#: data/ffripper.glade:223
+msgid "Select the format to which you want to rip your cd"
+msgstr "Seleccionar formato de destino"
+
+#: data/ffripper.glade:228
+msgid "Save as:"
+msgstr "Guardar como:"
+
+#: data/ffripper.glade:240
+msgid "Select output format"
+msgstr "Seleccionar formato de salida"
+
+#: data/ffripper.glade:312
+msgid "Output directory:"
+msgstr "Directorio de salida:"
+
+#: data/ffripper.glade:347
+msgid "Open folder"
+msgstr "Carpeta abierta"
+
+#: data/ffripper.glade:379
+msgid "Album:"
+msgstr "Álbum:"
+
+#: data/ffripper.glade:395
+msgid "Album Name"
+msgstr "Nombre del álbum"
+
+#: data/ffripper.glade:422
+msgid "Artist:"
+msgstr "Artista:"
+
+#: data/ffripper.glade:438
+msgid "Artist Name"
+msgstr "nombre artístico"
+
+#: data/ffripper.glade:509
+msgid "Play/Pause Music"
+msgstr "Reproducir / pausar música"
+
+#: ffripper/ui.py:344
+msgid "Rip"
+msgstr "Dupdo"
+
+#: data/ffripper.glade:626
+msgid "Start rip"
+msgstr "Iniciar proceso"
+
+#: data/ffripper.glade:658
+msgid "Total:"
+msgstr "Un total de:"
+
+#: data/ffripper.glade:700
+msgid "Fast and simple to use audio-cd ripper"
+msgstr "Extractor de CD rápido y fácil de usar"
+
+#: data/ffripper.glade:747
+msgid "Unable to locate directory:"
+msgstr "No se puede encontrar el directorio:"
+
+#: data/ffripper.glade:788
+msgid "FFRipper - Disc Not Found"
+msgstr "FFRipper CD no encontrado"
+
+#: data/ffripper.glade:824
+msgid "_Retry"
+msgstr "_Intentar otra vez"
+
+#: data/ffripper.glade:877
+msgid "&lt;big&gt;&lt;b&gt;No Disc Found&lt;/b&gt;&lt;/big&gt;"
+msgstr "& lt; big & gt; & lt; b & gt; CD no encontrado & lt; / b & gt; & lt; / big & gt;"
+
+#: data/ffripper.glade:893
+msgid "Plese insert a disc and try again!"
+msgstr "Inserte el CD y vuelva a intentarlo!"
+
+#: data/ffripper.glade:986
+msgid "Select Theme:"
+msgstr "Elige un tema:"
+
+#: data/ffripper.glade:1004
+msgid "System"
+msgstr "defecto"
+
+#: data/ffripper.glade:1005
+msgid "Light"
+msgstr "Brillante"
+
+#: data/ffripper.glade:1006
+msgid "Dark"
+msgstr "oscuro"
+
+#: data/ffripper.glade:1040
+msgid "Eject device after ripping:"
+msgstr "Expulsar CD después de copiar:"
+
+#: data/ffripper.glade:1080
+msgid "Standard Format: "
+msgstr "Formato estandar: "
+
+#: data/ffripper.glade:1118
+msgid "Standart Outputfolder:"
+msgstr "Directorio de salida estándar:"
+
+#: data/ffripper.glade:1192
+msgid "Artist directory create:"
+msgstr "Crear carpeta de artista:"
+
+#: data/ffripper.glade:1207
+msgid "Album directory create:"
+msgstr "Crear carpeta de álbum:"
+
+#: ffripper/ui_elements.py:136
+msgid "Finished Ripping"
+msgstr "Copia finalizada"
+
+#: ffripper/utils.py:65
+msgid "Please install ffmpeg and try again"
+msgstr "Instale ffmpeg y vuelva a intentarlo"
+
