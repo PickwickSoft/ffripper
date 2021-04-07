@@ -124,7 +124,7 @@ class Dialog:
             text="Finished Ripping",
         )
         dialog.format_secondary_text(
-            "Process finished in: ..."
+            ""
         )
         dialog.run()
         dialog.destroy()
@@ -134,6 +134,6 @@ class Dialog:
         Notify.init("ffripper-1.0")
         notification = Notify.Notification.new(
             "Finished Ripping",
-            "Process finished in: ..."
+            ""
         )
         notification.show()

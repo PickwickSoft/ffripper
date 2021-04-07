@@ -3,7 +3,7 @@ version: '0.1'
 summary: FFRipper
 description: |
   A fast, powerful and simple to use Audio-CD ripper.
-confinement: devmode
+confinement: strict
 base: core18
 license: GPL-3.0+
 
@@ -27,7 +27,6 @@ apps:
   ffripper:
     command: bin/ffripper
     extensions: [gnome-3-28]
-    desktop: /usr/share/applications/ffripper.desktop
     slots:
       - dbus-daemon
     plugs:
