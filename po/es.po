@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: FFRipper\n"
 "Language: es\n"
 
-#: data/ffripper.desktop:3
+#: data/ffripper.desktop.in:3
 msgid "A fast, powerful and simple to use Audio-CD ripper for Linux supporting 30+ output formats"
 msgstr "Extractor de CD rápido, potente y fácil de usar para Linux que admite más de 30 formatos de salida"
 
