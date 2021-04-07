@@ -77,7 +77,7 @@ msgstr "Musik abspielen/anhalten"
 
 #: ffripper/ui.py:344
 msgid "Rip"
-msgstr "Rip"
+msgstr "Kopieren"
 
 #: data/ffripper.glade:626
 msgid "Start rip"
