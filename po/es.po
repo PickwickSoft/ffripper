@@ -5,153 +5,153 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: POEditor.com\n"
 "Project-Id-Version: FFRipper\n"
-"Language: ro\n"
+"Language: es\n"
 
 #: data/ffripper.desktop.in:3
 msgid "A fast, powerful and simple to use Audio-CD ripper for Linux supporting 30+ output formats"
-msgstr "Un Ripper Audio-CD rapid, puternic și simplu de utilizat pentru Linux, care acceptă peste 30 de formate de ieșire"
+msgstr "Extractor de CD rápido, potente y fácil de usar para Linux que admite más de 30 formatos de salida"
 
 #: data/ffripper.glade:50
 msgid "Open Preferences"
-msgstr "Deschideți Preferințe"
+msgstr "Configuración abierta"
 
 #: data/ffripper.glade:51
 msgid "Preferences"
-msgstr "Preferințe"
+msgstr "Ajustes"
 
 #: data/ffripper.glade:76
 msgid "Reload Metadata"
-msgstr "Reîncărcați metadatele"
+msgstr "Recargar metadatos"
 
 #: data/ffripper.glade:50
 msgid "Eject disc"
-msgstr "Scoateți discul"
+msgstr "Expulsar CD"
 
 #: data/ffripper.glade:104
 msgid "About"
-msgstr "Despre"
+msgstr "terminado"
 
 #: data/ffripper.glade:151
 msgid "Settings"
-msgstr "Setări"
+msgstr "Ajustes"
 
 #: data/ffripper.glade:223
 msgid "Select the format to which you want to rip your cd"
-msgstr "Selectați formatul în care doriți să rupeți cd-ul"
+msgstr "Seleccionar formato de destino"
 
 #: data/ffripper.glade:228
 msgid "Save as:"
-msgstr "Salvează ca:"
+msgstr "Guardar como:"
 
 #: data/ffripper.glade:240
 msgid "Select output format"
-msgstr "Selectați formatul de ieșire"
+msgstr "Seleccionar formato de salida"
 
 #: data/ffripper.glade:312
 msgid "Output directory:"
-msgstr "Directorul de ieșire:"
+msgstr "Directorio de salida:"
 
 #: data/ffripper.glade:347
 msgid "Open folder"
-msgstr "Deschideți folderul"
+msgstr "Carpeta abierta"
 
 #: data/ffripper.glade:379
 msgid "Album:"
-msgstr "Album:"
+msgstr "Álbum:"
 
 #: data/ffripper.glade:395
 msgid "Album Name"
-msgstr "Numele albumului"
+msgstr "Nombre del álbum"
 
 #: data/ffripper.glade:422
 msgid "Artist:"
-msgstr "Artist:"
+msgstr "Artista:"
 
 #: data/ffripper.glade:438
 msgid "Artist Name"
-msgstr "Numele artistului"
+msgstr "nombre artístico"
 
 #: data/ffripper.glade:509
 msgid "Play/Pause Music"
-msgstr "Redare / Pauză muzică"
+msgstr "Reproducir / pausar música"
 
 #: ffripper/ui.py:344
 msgid "Rip"
-msgstr "Copiază"
+msgstr "Dupdo"
 
 #: data/ffripper.glade:626
 msgid "Start rip"
-msgstr "Începeți copiatul"
+msgstr "Iniciar proceso"
 
 #: data/ffripper.glade:658
 msgid "Total:"
-msgstr "Total:"
+msgstr "Un total de:"
 
 #: data/ffripper.glade:700
 msgid "Fast and simple to use audio-cd ripper"
-msgstr "Ripper audio-cd rapid și simplu de utilizat"
+msgstr "Extractor de CD rápido y fácil de usar"
 
 #: data/ffripper.glade:747
 msgid "Unable to locate directory:"
-msgstr "Imposibil de localizat directorul:"
+msgstr "No se puede encontrar el directorio:"
 
 #: data/ffripper.glade:788
 msgid "FFRipper - Disc Not Found"
-msgstr "FFRipper - Discul nu a fost găsit"
+msgstr "FFRipper CD no encontrado"
 
 #: data/ffripper.glade:824
 msgid "_Retry"
-msgstr "_Încearcă din nou"
+msgstr "_Intentar otra vez"
 
 #: data/ffripper.glade:877
 msgid "&lt;big&gt;&lt;b&gt;No Disc Found&lt;/b&gt;&lt;/big&gt;"
-msgstr "&lt;big&gt;&lt;b&gt;Niciun disc găsit&lt;/b&gt;&lt;/big&gt;"
+msgstr "& lt; big & gt; & lt; b & gt; CD no encontrado & lt; / b & gt; & lt; / big & gt;"
 
 #: data/ffripper.glade:893
 msgid "Plese insert a disc and try again!"
-msgstr "Vă rugăm să introduceți un disc și să încercați din nou!"
+msgstr "Inserte el CD y vuelva a intentarlo!"
 
 #: data/ffripper.glade:986
 msgid "Select Theme:"
-msgstr "Selectează tema:"
+msgstr "Elige un tema:"
 
 #: data/ffripper.glade:1004
 msgid "System"
-msgstr "Sistem"
+msgstr "defecto"
 
 #: data/ffripper.glade:1005
 msgid "Light"
-msgstr "Deschis"
+msgstr "Brillante"
 
 #: data/ffripper.glade:1006
 msgid "Dark"
-msgstr "Închis"
+msgstr "oscuro"
 
 #: data/ffripper.glade:1040
 msgid "Eject device after ripping:"
-msgstr "Scoateți dispozitivul după extragere:"
+msgstr "Expulsar CD después de copiar:"
 
 #: data/ffripper.glade:1080
 msgid "Standard Format: "
-msgstr "Format standard: "
+msgstr "Formato estandar: "
 
 #: data/ffripper.glade:1118
 msgid "Standart Outputfolder:"
-msgstr "Dosar de ieșire standard:"
+msgstr "Directorio de salida estándar:"
 
 #: data/ffripper.glade:1192
 msgid "Artist directory create:"
-msgstr "Creați directorul artistului:"
+msgstr "Crear carpeta de artista:"
 
 #: data/ffripper.glade:1207
 msgid "Album directory create:"
-msgstr "Creați directorul albumului:"
+msgstr "Crear carpeta de álbum:"
 
 #: ffripper/ui_elements.py:136
 msgid "Finished Ripping"
-msgstr "S-a terminat copiatul"
+msgstr "Copia finalizada"
 
 #: ffripper/utils.py:65
 msgid "Please install ffmpeg and try again"
-msgstr "Instalați ffmpeg și încercați din nou"
+msgstr "Instale ffmpeg y vuelva a intentarlo"
 
