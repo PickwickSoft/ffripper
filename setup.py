@@ -56,8 +56,4 @@ DistUtilsExtra.auto.setup(
     cmdclass={
         'install': Install
     },
-    url=ffripper.__url__,
-    download_url=ffripper.__download_url__,
-    author=ffripper.__author__,
-    author_email=ffripper.__author_email__
 )
