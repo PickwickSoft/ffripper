@@ -54,6 +54,6 @@ DistUtilsExtra.auto.setup(
         ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg'])
     ],
     cmdclass={
-        'install': Install
+        b'install': Install
     },
 )
