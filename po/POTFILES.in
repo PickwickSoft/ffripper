@@ -1,6 +1,6 @@
 [encoding: UTF-8]
 
-data/ffripper.desktop
+data/ffripper.desktop.in
 data/ffripper.glade
 
 ffripper/ui.py
