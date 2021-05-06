@@ -19,4 +19,4 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint ffripper --exit-zero
+        pylint ffripper --exit-zero --disable=missing-function-docstring
