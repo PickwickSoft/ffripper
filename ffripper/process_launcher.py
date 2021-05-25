@@ -108,7 +108,7 @@ class CopyProcessor:
                 "" if self.cover is None else "-i \"{0}\"".format(self.cover)
             )
             ffmpeg_path = is_installed("ffmpeg")
-            rip_command = """{0} -y -threads 0 -i \"{1}/{2}\" {3} -metadata title=\"{4}\"  -metadata artist=\"{5}\" 
+            rip_command = """{0} -y -threads 0 -i \"{1}/{2}\" {3} -metadata title=\"{4}\"  -metadata artist=\"{5}\"
                             -metadata album=\"{6}\" -metadata date=\"{7}\" \"{8}/{9}\"""".format(
                 ffmpeg_path,
                 self.input_location,
