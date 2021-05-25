@@ -18,14 +18,20 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #   USA
 #
-import os
+import os, shutil
 import ffripper
-from setuptools import setup
+from distutils.core import setup
+
+def install_desktop():
+    """
+    Copy the ffripper.desktop file to /usr/share/applications/
+    """
+    shutil.copyfile("data/ffripper.desktop", "/usr/share/applications/ffripper.desktop")
 
 if os.geteuid() != 0:
     exit("You need to have root privileges to run this script.\nPlease try again using 'sudo python3 setup.py install'")
 
-data_files = [('share/applications/', ['data/ffripper.desktop']),
+data_files = [# ('share/applications/', ['data/ffripper.desktop']),
               ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg']),
               ('share/icons/hicolor/scalable/emblems/', ['data/cd-case.svg']),
               ('share/ffripper/', ['data/ffripper.glade']),
@@ -48,6 +54,9 @@ setup(
     keywords=['rip', 'file format', 'audio', 'ffmpeg', 'cd', 'ffripper'],
     install_requires=['rich'],
 )
+
+install_desktop()
+
 if os.path.exists('/usr/share/ffripper/'):
     os.chmod('/usr/share/ffripper/settings.yaml', 0o777)
 elif os.path.exists('/usr/local/share/ffripper/'):
