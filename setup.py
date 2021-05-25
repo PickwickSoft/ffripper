@@ -18,42 +18,37 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #   USA
 #
-
 import os
 import ffripper
-import sys
+from setuptools import setup
 
-try:
-    import DistUtilsExtra.auto
-except ImportError:
-    sys.stderr.write('You need python-distutils-extra\n')
-    sys.exit(1)
+if os.geteuid() != 0:
+    exit("You need to have root privileges to run this script.\nPlease try again using 'sudo python3 setup.py install'")
 
-import DistUtilsExtra.auto
+data_files = [('share/applications/', ['data/ffripper.desktop']),
+              ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg']),
+              ('share/icons/hicolor/scalable/emblems/', ['data/cd-case.svg']),
+              ('share/ffripper/', ['data/ffripper.glade']),
+              ('share/ffripper/', ['data/settings.yaml'])
+              ]
 
-
-class Install(DistUtilsExtra.auto.install_auto):
-    def run(self):
-        DistUtilsExtra.auto.install_auto.run(self)
-        print("Changing mode of settings.yaml to 777")
-        if os.path.exists('/usr/share/ffripper/'):
-            os.chmod('/usr/share/ffripper/settings.yaml', 0o777)
-        elif os.path.exists('/usr/local/share/ffripper/'):
-            os.chmod('/usr/local/share/ffripper/settings.yaml', 0o777)
-
-
-DistUtilsExtra.auto.setup(
-    name="ffripper",
+setup(
+    name=ffripper.__name__,
+    packages=[ffripper.__name__],
+    scripts=['bin/ffripper'],
+    data_files=data_files,
     version=ffripper.__version__,
-    description=(
-        ffripper.__description__
-    ),
+    description=ffripper.__description__,
+    author=ffripper.__author__,
+    author_email=ffripper.__author_email__,
     license=ffripper.__license__,
-    data_files=[
-        ('share/icons/hicolor/scalable/emblems/', ['data/cd-case.svg']),
-        ('share/icons/hicolor/scalable/apps/', ['data/ffripper.svg'])
-    ],
-    cmdclass={
-        b'install': Install
-    },
+    platforms=ffripper.__platforms__,
+    url=ffripper.__url__,
+    download_url=ffripper.__download_url__,
+    keywords=['rip', 'file format', 'audio', 'ffmpeg', 'cd', 'ffripper'],
+    install_requires=['rich'],
 )
+if os.path.exists('/usr/share/ffripper/'):
+    os.chmod('/usr/share/ffripper/settings.yaml', 0o777)
+elif os.path.exists('/usr/local/share/ffripper/'):
+    os.chmod('/usr/local/share/ffripper/settings.yaml', 0o777)

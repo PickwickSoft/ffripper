@@ -1,0 +1,5 @@
+include AUTHORS
+include bin/ffripper
+include test/*
+include data/*
+recursive-exclude ffripper *.pyc
