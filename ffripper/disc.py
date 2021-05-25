@@ -35,8 +35,7 @@ class Disc:
             desktop_session = desktop_session.lower()
             if desktop_session in ["gnome", "ubuntu"]:
                 return "/run/user/1000/gvfs/cdda:host=sr0"
-            else:
-                return "/media/cdrom0"
+            return "/media/cdrom0"
 
     def is_disc(self):
         return bool(os.path.isdir(self.mount_point))
