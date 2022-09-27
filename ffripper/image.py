@@ -53,7 +53,7 @@ class Image:
             return _loader.get_pixbuf()
 
     @staticmethod
-    def bytes2png(data, output_dir, filename):   # type: (bytes, str, str) -> str
+    def bytes2png(data, output_dir, filename):    # type: (bytes, str, str) -> str
         """
         writes raw bytes to .png file
         :param data: raw bytes
@@ -61,11 +61,13 @@ class Image:
         :param filename: name of the file (file extension is added automatically)
         :return: the full path to image
         """
-        _result_file = output_dir + "/" + filename
+        _result_file = f"{output_dir}/{filename}"
         try:
             _image = PilImage.open(io.BytesIO(data))
-            _image.save(_result_file + '.png', 'PNG')
-            return _result_file + ".png"
+            _image.save(f'{_result_file}.png', 'PNG')
+            return f"{_result_file}.png"
         except PermissionError as e:
-            raise RipperError(Reason.PERMISIONERROR, "Unable to write to {}".format(output_dir)) from e
+            raise RipperError(
+                Reason.PERMISIONERROR, f"Unable to write to {output_dir}"
+            ) from e
 

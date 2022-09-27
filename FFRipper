@@ -27,6 +27,9 @@ from gi.repository import Gtk
 from ffripper.ui import main
 
 builder = Gtk.Builder()
-builder.add_from_file("{}/data/ffripper.glade".format(os.path.dirname(os.path.realpath(__file__))))
+builder.add_from_file(
+    f"{os.path.dirname(os.path.realpath(__file__))}/data/ffripper.glade"
+)
+
 
 main(builder, "../data/")

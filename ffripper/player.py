@@ -53,7 +53,7 @@ class Player:
         :param filepath: str (path to audio file)
         """
         self.filepath = filepath
-        self._player.set_property("uri", "file://" + self.filepath)
+        self._player.set_property("uri", f"file://{self.filepath}")
 
     def set_volume(self, volume):
         """
@@ -97,7 +97,7 @@ class Player:
         elif t == Gst.MessageType.ERROR:
             self._player.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
-            print("Error: %s" % err, debug)
+            print(f"Error: {err}", debug)
 
     def get_duration(self):
         """
