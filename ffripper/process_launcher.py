@@ -60,17 +60,13 @@ class CopyProcessor:
     def create_album_directory(self):
         if self.album_directory:
             self.output_location = os.path.join(self.output_location, self.meta.get_album())
-            logger.info("Creating Path {}".format(
-                self.output_location
-            ))
+            logger.info(f"Creating Path {self.output_location}")
             self.mkdir(self.output_location)
 
     def create_artist_directory(self):
         if self.artist_directory:
             self.output_location = os.path.join(self.output_location, self.meta.get_artist())
-            logger.info("Creating Path {}".format(
-                self.output_location
-            ))
+            logger.info(f"Creating Path {self.output_location}")
             self.mkdir(self.output_location)
 
     @staticmethod
@@ -96,14 +92,14 @@ class CopyProcessor:
         ]
 
     def run(self):
-        logger.info("Started at {}".format(time.time()))
+        logger.info(f"Started at {time.time()}")
         start_time = []
         self.create_dirs()
         for i in range(len(self.audio_files)):
             if not self.should_continue:
                 return
             start_time.append(time.time())
-            logger.debug("{}: starting subprocess {}".format(time.time(), i))
+            logger.debug(f"{time.time()}: starting subprocess {i}")
             cover_art_stream = (
                 "" if self.cover is None else "-i \"{0}\"".format(self.cover)
             )
@@ -147,6 +143,6 @@ class CopyProcessor:
         self.create_album_directory()
 
     def rm_cover(self):
-        path = os.path.join(self.base_location + "/cover.png")
+        path = os.path.join(f"{self.base_location}/cover.png")
         if os.path.exists(path):  # Else it has been deleted from outside
             os.remove(path)

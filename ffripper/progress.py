@@ -52,14 +52,10 @@ class FFmpegProgress:
                 break
             myline += out
             if out in ('\r', '\n'):
-                m = re.search("Duration: ([0-9:.]+)", myline)
-                if m:
-                    total = duration_in_seconds(m.group(1))
-                n = re.search("time=([0-9:]+)", myline)
-                # time can be of format 'time=hh:mm:ss.ts' or 'time=ss.ts'
-                # depending on ffmpeg version
-                if n:
-                    time = n.group(1)
+                if m := re.search("Duration: ([0-9:.]+)", myline):
+                    total = duration_in_seconds(m[1])
+                if n := re.search("time=([0-9:]+)", myline):
+                    time = n[1]
                     if ':' in time:
                         time = duration_in_seconds(time)
                     now_sec = int(float(time))

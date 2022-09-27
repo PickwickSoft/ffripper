@@ -24,6 +24,7 @@
 A fast, powerful and simple-to-use graphical CD ripper
 """
 
+
 __major__ = 0
 __minor__ = 1
 __release__ = 0
@@ -31,11 +32,12 @@ __prerelease__ = ""  # alpha, beta, rc etc.
 
 # package information
 __name__ = "ffripper"
-if __release__ == 0:
-    __version__ = "{0}.{1}".format(__major__, __minor__)
-else:
-    __version__ = "{0}.{1}.{2}".format(__major__, __minor__, __release__)
-__version__ += __prerelease__
+__version__ = (
+    "{0}.{1}".format(__major__, __minor__)
+    if __release__ == 0
+    else "{0}.{1}.{2}".format(__major__, __minor__, __release__)
+) + __prerelease__
+
 __description__ = "Fast audio-cd ripper"
 __author__ = "Stefan Garlonta"
 __author_email__ = "stefan.garlonta@gmail.com"

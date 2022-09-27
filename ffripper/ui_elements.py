@@ -62,10 +62,8 @@ class UiObjects:
             Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK
         )
         dialog.set_default_size(800, 400)
-        folder = None
         response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            folder = dialog.get_filename()
+        folder = dialog.get_filename() if response == Gtk.ResponseType.OK else None
         dialog.destroy()
         return folder
 

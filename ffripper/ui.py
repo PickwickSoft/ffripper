@@ -80,8 +80,8 @@ class MyCopyListener(CopyProcessorListener):
     @staticmethod
     def __main_thread_updater(count):
         percentage = count / 100
-        logger.debug("Current fraction: {}%".format(window.progressbar.get_fraction() * 100))
-        logger.debug("Fraction: {}".format(percentage))
+        logger.debug(f"Current fraction: {window.progressbar.get_fraction() * 100}%")
+        logger.debug(f"Fraction: {percentage}")
         window.progressbar.set_fraction(window.progressbar.get_fraction() + percentage)
 
     @staticmethod
@@ -177,7 +177,7 @@ class RipperWindow(GladeWindow):
 
     def set_player(self):
         if self.is_disc():
-            self.player.set_file(self.disc.mount_point + "/" + self.disc_tracks[0])
+            self.player.set_file(f"{self.disc.mount_point}/{self.disc_tracks[0]}")
 
     def set_cover_image(self):
         try:
@@ -384,10 +384,10 @@ class RipperWindow(GladeWindow):
         self.player_button.set_image(self.play_image)
 
     def on_tree_view_columns_changed(self, widget, row, column):
-        logger.debug("Changed row: {}".format(row))
+        logger.debug(f"Changed row: {row}")
         self.player.reset()
         index = int(row.get_indices()[0])
-        self.player.set_file(self.disc.mount_point + "/" + self.disc_tracks[index])
+        self.player.set_file(f"{self.disc.mount_point}/{self.disc_tracks[index]}")
         self.player_button.set_image(self.pause_image)
         self.player.play()
 
@@ -466,9 +466,9 @@ window = None
 
 def main(builder, data):
     global window
-    window = RipperWindow(builder, data + "settings.yaml")
+    window = RipperWindow(builder, f"{data}settings.yaml")
     load = Loader()
     load.load_formats(formats)
-    load.load_settings(data + "settings.yaml")
+    load.load_settings(f"{data}settings.yaml")
     logger.info("Started FFRipper")
     Gtk.main()

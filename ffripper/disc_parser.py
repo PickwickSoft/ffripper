@@ -68,22 +68,57 @@ class CdDiscParser(CdInfoParser):
                         if self.dict['disc']['release-list'][0]['medium-list'][i]['disc-list'][f]['id'] == self.disc_id:
                             self._mb_id = self.dict['disc']['release-list'][0]['id']
                             self._release = self.dict['disc']['release-list'][0]['medium-list'][i]
-                            for j in range(len(self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'])):
-                                tracks.append(
-                                    TrackInfo(self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'][j]
-                                              ['recording']["title"],
-                                              self.dict['disc']['release-list'][0]['medium-list'][i]['track-list'][j][
-                                                  'length'],
-                                              self.dict['disc']['release-list'][0]['date'],
-                                              self.dict['disc']['release-list'][0]['medium-list'][i]['track-list']
-                                              [j]['recording']['artist-credit'][0]['artist']['name']))
+                            tracks.extend(
+                                TrackInfo(
+                                    self.dict['disc']['release-list'][0][
+                                        'medium-list'
+                                    ][i]['track-list'][j]['recording']["title"],
+                                    self.dict['disc']['release-list'][0][
+                                        'medium-list'
+                                    ][i]['track-list'][j]['length'],
+                                    self.dict['disc']['release-list'][0]['date'],
+                                    self.dict['disc']['release-list'][0][
+                                        'medium-list'
+                                    ][i]['track-list'][j]['recording'][
+                                        'artist-credit'
+                                    ][
+                                        0
+                                    ][
+                                        'artist'
+                                    ][
+                                        'name'
+                                    ],
+                                )
+                                for j in range(
+                                    len(
+                                        self.dict['disc']['release-list'][0][
+                                            'medium-list'
+                                        ][i]['track-list']
+                                    )
+                                )
+                            )
+
         except IndexError:
-            for i in range(len(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'])):
-                tracks.append(
-                    TrackInfo(self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'][i]['recording'][
-                                  "title"],
-                              self.dict['disc']['release-list'][0]['medium-list'][0]['track-list'][i]['length'],
-                              self.dict['disc']['release-list'][0]['date'], None))
+            tracks.extend(
+                TrackInfo(
+                    self.dict['disc']['release-list'][0]['medium-list'][0][
+                        'track-list'
+                    ][i]['recording']["title"],
+                    self.dict['disc']['release-list'][0]['medium-list'][0][
+                        'track-list'
+                    ][i]['length'],
+                    self.dict['disc']['release-list'][0]['date'],
+                    None,
+                )
+                for i in range(
+                    len(
+                        self.dict['disc']['release-list'][0]['medium-list'][0][
+                            'track-list'
+                        ]
+                    )
+                )
+            )
+
         return tracks
 
     def parse_for_cover(self):
